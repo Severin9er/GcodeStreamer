@@ -220,6 +220,8 @@ namespace GcodeStreamer
             }
         }
 
+        #region communication with cnc
+
         private void moveToPos(position p)
         {
             send("G01 Z" + p.z.ToString(decAccuracy));  //Move Z first
@@ -384,22 +386,22 @@ namespace GcodeStreamer
                 {
                     for (int i = 0; i < (val - lastFeed) / 10; i++)
                     {
-                        send("" + (char)0x91);    //increase by 10
+                        sendHidden("" + (char)0x91);    //increase by 10
                     }
                     for (int i = 0; i < (val - lastFeed) % 10; i++)
                     {
-                        send("" + (char)0x93);    //Increase by 1
+                        sendHidden("" + (char)0x93);    //Increase by 1
                     }
                 }
                 else
                 {
                     for (int i = 0; i < (lastFeed - val) / 10; i++)
                     {
-                        send("" + (char)0x92);    //decrease by 10
+                        sendHidden("" + (char)0x92);    //decrease by 10
                     }
                     for (int i = 0; i < (lastFeed - val) % 10; i++)
                     {
-                        send("" + (char)0x94);    //decrease by 1
+                        sendHidden("" + (char)0x94);    //decrease by 1
                     }
                 }
                 lastFeed = val;
@@ -431,6 +433,8 @@ namespace GcodeStreamer
                 send(jogString);
             }
         }
+
+        #endregion
 
         #region invoke
 
@@ -520,7 +524,7 @@ namespace GcodeStreamer
             {
                 jogLoop.Abort();
                 jogLoop = null;
-                send(jogCancel);
+                sendHidden(jogCancel);
             }
             if(streamingThread != null && streamingThread.ThreadState == ThreadState.Running)
             {
@@ -673,7 +677,7 @@ namespace GcodeStreamer
             jogLoop.Abort();
             while (jogLoop.ThreadState != ThreadState.Aborted);
             jogLoop = null;
-            send(jogCancel);
+            sendHidden(jogCancel);
         }
 
         private void tbarJoystick_Scroll(object sender, EventArgs e)
