@@ -118,6 +118,7 @@ namespace GcodeStreamer
                 port.Open();
             }
             catch(Exception e) {
+                System.Console.WriteLine(e.StackTrace);
                 //Error-Message
             }
             refreshPosThread = new Thread(refreshPos);
