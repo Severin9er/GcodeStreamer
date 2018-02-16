@@ -49,14 +49,16 @@
             this.lblXPos = new System.Windows.Forms.Label();
             this.lblYPos = new System.Windows.Forms.Label();
             this.lblZPos = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.tsmiSettings = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.tbarFeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).BeginInit();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.onClose);
             // 
             // btnOpenFile
             // 
-            this.btnOpenFile.Location = new System.Drawing.Point(460, 18);
+            this.btnOpenFile.Location = new System.Drawing.Point(454, 26);
             this.btnOpenFile.Name = "btnOpenFile";
             this.btnOpenFile.Size = new System.Drawing.Size(61, 33);
             this.btnOpenFile.TabIndex = 0;
@@ -67,14 +69,14 @@
             // tbFileName
             // 
             this.tbFileName.Enabled = false;
-            this.tbFileName.Location = new System.Drawing.Point(18, 23);
+            this.tbFileName.Location = new System.Drawing.Point(12, 31);
             this.tbFileName.Name = "tbFileName";
             this.tbFileName.Size = new System.Drawing.Size(437, 22);
             this.tbFileName.TabIndex = 1;
             // 
             // tbConsole
             // 
-            this.tbConsole.Location = new System.Drawing.Point(19, 98);
+            this.tbConsole.Location = new System.Drawing.Point(13, 106);
             this.tbConsole.Multiline = true;
             this.tbConsole.Name = "tbConsole";
             this.tbConsole.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -83,7 +85,7 @@
             // 
             // tbCommands
             // 
-            this.tbCommands.Location = new System.Drawing.Point(19, 470);
+            this.tbCommands.Location = new System.Drawing.Point(13, 478);
             this.tbCommands.Name = "tbCommands";
             this.tbCommands.Size = new System.Drawing.Size(436, 22);
             this.tbCommands.TabIndex = 3;
@@ -91,7 +93,7 @@
             // 
             // btnSendCommand
             // 
-            this.btnSendCommand.Location = new System.Drawing.Point(461, 463);
+            this.btnSendCommand.Location = new System.Drawing.Point(455, 471);
             this.btnSendCommand.Name = "btnSendCommand";
             this.btnSendCommand.Size = new System.Drawing.Size(60, 36);
             this.btnSendCommand.TabIndex = 4;
@@ -102,7 +104,7 @@
             // btnStart
             // 
             this.btnStart.Enabled = false;
-            this.btnStart.Location = new System.Drawing.Point(19, 55);
+            this.btnStart.Location = new System.Drawing.Point(13, 63);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(85, 30);
             this.btnStart.TabIndex = 5;
@@ -113,7 +115,7 @@
             // btnPause
             // 
             this.btnPause.Enabled = false;
-            this.btnPause.Location = new System.Drawing.Point(110, 55);
+            this.btnPause.Location = new System.Drawing.Point(104, 63);
             this.btnPause.Name = "btnPause";
             this.btnPause.Size = new System.Drawing.Size(85, 30);
             this.btnPause.TabIndex = 6;
@@ -124,7 +126,7 @@
             // btnStop
             // 
             this.btnStop.Enabled = false;
-            this.btnStop.Location = new System.Drawing.Point(201, 55);
+            this.btnStop.Location = new System.Drawing.Point(195, 63);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(85, 30);
             this.btnStop.TabIndex = 7;
@@ -134,7 +136,7 @@
             // 
             // pbStreamBar
             // 
-            this.pbStreamBar.Location = new System.Drawing.Point(299, 57);
+            this.pbStreamBar.Location = new System.Drawing.Point(293, 65);
             this.pbStreamBar.Name = "pbStreamBar";
             this.pbStreamBar.Size = new System.Drawing.Size(223, 27);
             this.pbStreamBar.TabIndex = 8;
@@ -142,7 +144,7 @@
             // pJoystick
             // 
             this.pJoystick.BackColor = System.Drawing.SystemColors.Control;
-            this.pJoystick.Location = new System.Drawing.Point(585, 293);
+            this.pJoystick.Location = new System.Drawing.Point(579, 301);
             this.pJoystick.Name = "pJoystick";
             this.pJoystick.Size = new System.Drawing.Size(200, 200);
             this.pJoystick.TabIndex = 15;
@@ -152,7 +154,7 @@
             // 
             // tbarFeed
             // 
-            this.tbarFeed.Location = new System.Drawing.Point(580, 158);
+            this.tbarFeed.Location = new System.Drawing.Point(574, 166);
             this.tbarFeed.Maximum = 200;
             this.tbarFeed.Minimum = 11;
             this.tbarFeed.Name = "tbarFeed";
@@ -165,7 +167,7 @@
             // 
             // tbFeed
             // 
-            this.tbFeed.Location = new System.Drawing.Point(816, 158);
+            this.tbFeed.Location = new System.Drawing.Point(810, 166);
             this.tbFeed.Name = "tbFeed";
             this.tbFeed.Size = new System.Drawing.Size(61, 22);
             this.tbFeed.TabIndex = 19;
@@ -175,7 +177,7 @@
             // lblFeedP
             // 
             this.lblFeedP.AutoSize = true;
-            this.lblFeedP.Location = new System.Drawing.Point(883, 158);
+            this.lblFeedP.Location = new System.Drawing.Point(877, 166);
             this.lblFeedP.Name = "lblFeedP";
             this.lblFeedP.Size = new System.Drawing.Size(20, 17);
             this.lblFeedP.TabIndex = 22;
@@ -184,7 +186,7 @@
             // lblFeed
             // 
             this.lblFeed.AutoSize = true;
-            this.lblFeed.Location = new System.Drawing.Point(527, 163);
+            this.lblFeed.Location = new System.Drawing.Point(521, 171);
             this.lblFeed.Name = "lblFeed";
             this.lblFeed.Size = new System.Drawing.Size(44, 17);
             this.lblFeed.TabIndex = 25;
@@ -192,7 +194,7 @@
             // 
             // tbarJoystick
             // 
-            this.tbarJoystick.Location = new System.Drawing.Point(816, 293);
+            this.tbarJoystick.Location = new System.Drawing.Point(810, 301);
             this.tbarJoystick.Maximum = 100;
             this.tbarJoystick.Minimum = -100;
             this.tbarJoystick.Name = "tbarJoystick";
@@ -209,7 +211,7 @@
             // 
             this.tbXPos.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tbXPos.Enabled = false;
-            this.tbXPos.Location = new System.Drawing.Point(585, 23);
+            this.tbXPos.Location = new System.Drawing.Point(579, 31);
             this.tbXPos.Name = "tbXPos";
             this.tbXPos.Size = new System.Drawing.Size(55, 22);
             this.tbXPos.TabIndex = 27;
@@ -218,7 +220,7 @@
             // 
             this.tbYPos.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tbYPos.Enabled = false;
-            this.tbYPos.Location = new System.Drawing.Point(673, 23);
+            this.tbYPos.Location = new System.Drawing.Point(667, 31);
             this.tbYPos.Name = "tbYPos";
             this.tbYPos.Size = new System.Drawing.Size(55, 22);
             this.tbYPos.TabIndex = 28;
@@ -227,7 +229,7 @@
             // 
             this.tbZPos.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tbZPos.Enabled = false;
-            this.tbZPos.Location = new System.Drawing.Point(761, 23);
+            this.tbZPos.Location = new System.Drawing.Point(755, 31);
             this.tbZPos.Name = "tbZPos";
             this.tbZPos.Size = new System.Drawing.Size(55, 22);
             this.tbZPos.TabIndex = 29;
@@ -235,7 +237,7 @@
             // lblXPos
             // 
             this.lblXPos.AutoSize = true;
-            this.lblXPos.Location = new System.Drawing.Point(558, 26);
+            this.lblXPos.Location = new System.Drawing.Point(552, 34);
             this.lblXPos.Name = "lblXPos";
             this.lblXPos.Size = new System.Drawing.Size(21, 17);
             this.lblXPos.TabIndex = 30;
@@ -245,7 +247,7 @@
             // lblYPos
             // 
             this.lblYPos.AutoSize = true;
-            this.lblYPos.Location = new System.Drawing.Point(646, 26);
+            this.lblYPos.Location = new System.Drawing.Point(640, 34);
             this.lblYPos.Name = "lblYPos";
             this.lblYPos.Size = new System.Drawing.Size(21, 17);
             this.lblYPos.TabIndex = 31;
@@ -255,18 +257,36 @@
             // lblZPos
             // 
             this.lblZPos.AutoSize = true;
-            this.lblZPos.Location = new System.Drawing.Point(734, 26);
+            this.lblZPos.Location = new System.Drawing.Point(728, 34);
             this.lblZPos.Name = "lblZPos";
             this.lblZPos.Size = new System.Drawing.Size(21, 17);
             this.lblZPos.TabIndex = 32;
             this.lblZPos.Text = "Z:";
             this.lblZPos.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiSettings});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(1006, 28);
+            this.menuStrip1.TabIndex = 33;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // tsmiSettings
+            // 
+            this.tsmiSettings.Name = "tsmiSettings";
+            this.tsmiSettings.Size = new System.Drawing.Size(74, 24);
+            this.tsmiSettings.Text = "Settings";
+            this.tsmiSettings.Click += new System.EventHandler(this.tsmiSettings_Click);
+            // 
             // GcodeStreamer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(982, 551);
+            this.ClientSize = new System.Drawing.Size(1006, 978);
             this.Controls.Add(this.lblZPos);
             this.Controls.Add(this.lblYPos);
             this.Controls.Add(this.lblXPos);
@@ -288,10 +308,15 @@
             this.Controls.Add(this.tbConsole);
             this.Controls.Add(this.tbFileName);
             this.Controls.Add(this.btnOpenFile);
+            this.Controls.Add(this.menuStrip1);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "GcodeStreamer";
             this.Text = "Gcode Streamer";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.onClose);
             ((System.ComponentModel.ISupportInitialize)(this.tbarFeed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).EndInit();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -319,6 +344,8 @@
         private System.Windows.Forms.Label lblXPos;
         private System.Windows.Forms.Label lblYPos;
         private System.Windows.Forms.Label lblZPos;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem tsmiSettings;
     }
 }
 

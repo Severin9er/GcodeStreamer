@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.IO.Ports;
 using System.IO;
 using System.Threading;
+using WindowsFormsApplication2;
 
 namespace GcodeStreamer
 {
@@ -54,25 +55,24 @@ namespace GcodeStreamer
             "" + (char)0x97,
             "" + (char)0x9A
         };
-
-        const string decAccuracy = "0.000000";
-
-        const char decSplitChar = ',';
-
-        #endregion
-
-        #region properties
-
         string feedHold = "!";
         string feedResume = "~";
         string softReset = "" + (char)0x18;
         string requestState = "?";
         string jogCancel = "" + (char)0x85;
+
+        #endregion
+
+        #region properties
+
+
         string portName = "COM8";
         int baudrate = 115200;
         int maxFeed = 300;
         double maxStep = 0.1;
         int refreshPosInterval = 100;
+        string decAccuracy = "0.000000";
+        char decSplitChar = ',';
 
         #endregion
 
@@ -101,6 +101,7 @@ namespace GcodeStreamer
         int lastFeed;
         volatile bool joystickloop;
         volatile string jogString;
+        WFSettings settings;
 
         #endregion
 
@@ -114,13 +115,41 @@ namespace GcodeStreamer
             usedTools = new LinkedList<tool>();
             currentToolNr = -1;
             lastFeed = 100;
+            settings = new WFSettings();
             try {
                 port.Open();
             }
             catch(Exception e) {
-                System.Console.WriteLine(e.StackTrace);
+                //System.Console.WriteLine(e.StackTrace);
                 //Error-Message
             }
+            if(File.Exists("settings.txt"))
+            {
+                StreamReader s = new StreamReader("settings.txt");
+                portName = s.ReadLine();
+                baudrate = int.Parse(s.ReadLine());
+                maxFeed = int.Parse(s.ReadLine());
+                maxStep = double.Parse(s.ReadLine());
+                refreshPosInterval = int.Parse(s.ReadLine());
+                decAccuracy = s.ReadLine();
+                decSplitChar = char.Parse(s.ReadLine());
+                s.Close();
+            }
+            else
+            {
+                StreamWriter s = new StreamWriter("settings.txt");
+                settings.restoreDefault();
+                s.WriteLine(settings.comport);
+                s.WriteLine(settings.baudrate);
+                s.WriteLine(settings.maxJoystickFeed);
+                s.WriteLine(settings.maxJoystickStep);
+                s.WriteLine(settings.refreshPosInterval);
+                s.WriteLine(settings.decAccuracy);
+                s.WriteLine(settings.asdxcfvgbhn);
+                s.Close();
+            }
+
+
             refreshPosThread = new Thread(refreshPos);
             refreshPosThread.Start();
         }
@@ -752,11 +781,49 @@ namespace GcodeStreamer
                     e.Handled = true;
                 }
             }
-            
         }
-        
+
 
         #endregion
+
+        private void tsmiSettings_Click(object sender, EventArgs e)
+        {
+            settings = new WFSettings();
+            settings.comport = portName;
+            settings.baudrate = baudrate;
+            settings.asdxcfvgbhn = decSplitChar;
+            settings.maxJoystickStep = maxStep;
+            settings.maxJoystickFeed = maxFeed;
+            settings.decAccuracy = decAccuracy;
+            settings.refreshPosInterval = refreshPosInterval;
+            settings.initSettings();
+            refreshPosThread.Abort();
+            settings.Show();
+            settings.FormClosed += new FormClosedEventHandler(Settings_Close);
+        }
+
+        private void Settings_Close(object sender, FormClosedEventArgs e)
+        {
+            WFSettings s = (WFSettings)sender;
+            portName = s.comport;
+            baudrate = s.baudrate;
+            decSplitChar = s.asdxcfvgbhn;
+            decAccuracy = s.decAccuracy;
+            refreshPosInterval = s.refreshPosInterval;
+            maxFeed = s.maxJoystickFeed;
+            maxStep = s.maxJoystickStep;
+            try
+            {
+                port = new SerialPort(portName, baudrate);
+            }
+            catch(Exception ex)
+            {
+                //Nope
+            }
+            s.FormClosed -= new FormClosedEventHandler(Settings_Close);
+            refreshPosThread = new Thread(refreshPos);
+            refreshPosThread.Start();
+        }
     }
 }
 
