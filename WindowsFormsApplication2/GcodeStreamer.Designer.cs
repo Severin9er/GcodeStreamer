@@ -51,6 +51,7 @@
             this.lblZPos = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.tsmiSettings = new System.Windows.Forms.ToolStripMenuItem();
+            this.pDrawing = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.tbarFeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -282,11 +283,20 @@
             this.tsmiSettings.Text = "Settings";
             this.tsmiSettings.Click += new System.EventHandler(this.tsmiSettings_Click);
             // 
+            // pDrawing
+            // 
+            this.pDrawing.BackColor = System.Drawing.Color.DarkGray;
+            this.pDrawing.Location = new System.Drawing.Point(13, 563);
+            this.pDrawing.Name = "pDrawing";
+            this.pDrawing.Size = new System.Drawing.Size(766, 403);
+            this.pDrawing.TabIndex = 34;
+            // 
             // GcodeStreamer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1006, 978);
+            this.Controls.Add(this.pDrawing);
             this.Controls.Add(this.lblZPos);
             this.Controls.Add(this.lblYPos);
             this.Controls.Add(this.lblXPos);
@@ -346,6 +356,7 @@
         private System.Windows.Forms.Label lblZPos;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsmiSettings;
+        private System.Windows.Forms.Panel pDrawing;
     }
 }
 

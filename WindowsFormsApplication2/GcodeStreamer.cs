@@ -465,6 +465,115 @@ namespace GcodeStreamer
 
         #endregion
 
+        #region gcode drawing
+
+        private void getDimensions(out double xMin, out double yMin, out double xMax, out double yMax)
+        {
+            StreamReader fileReader = new StreamReader(tbFileName.Text);
+            xMin = double.PositiveInfinity;
+            yMin = double.PositiveInfinity;
+            xMax = double.NegativeInfinity;
+            yMax = double.NegativeInfinity;
+            while (!fileReader.EndOfStream)
+            {
+                string line = fileReader.ReadLine();
+                string[] s = line.Split(' ');
+                if(s[0] == "G01" || s[0] == "G00")
+                {
+                    for(int i = 1; i < s.Length; i++)
+                    {
+                        s[i] = s[i].Replace('.', decSplitChar);
+                        if(s[i].Length > 0)
+                        {
+                            if (s[i].First() == 'X')
+                            {
+                                double x = double.Parse(s[i].Remove(0, 1));
+                                if (x < xMin)
+                                {
+                                    xMin = x;
+                                }
+                                if (x > xMax)
+                                {
+                                    xMax = x;
+                                }
+                            }
+                            else if (s[i].First() == 'Y')
+                            {
+                                double y = double.Parse(s[i].Remove(0, 1));
+                                if (y < yMin)
+                                {
+                                    yMin = y;
+                                }
+                                if (y > yMax)
+                                {
+                                    yMax = y;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            fileReader.Close();
+        }
+
+        public void drawGcodeFile()
+        {
+            position startPos, endPos;
+            Point lineStart = new Point();
+            Point lineEnd = new Point();
+            startPos.x = 0;
+            startPos.y = 0;
+            startPos.z = 0;
+            double xMin, yMin, xMax, yMax;
+            getDimensions(out xMin, out yMin, out xMax, out yMax);
+            Graphics gDrawing = pDrawing.CreateGraphics();
+            Pen p = new Pen(Color.Black);
+            Rectangle pcbBounds = pDrawing.ClientRectangle;
+            pcbBounds.X += 20;
+            pcbBounds.Y += 20;
+            pcbBounds.Height -= 40;
+            pcbBounds.Width -= 40;
+            gDrawing.DrawRectangle(p, pcbBounds);
+            StreamReader fileReader = new StreamReader(tbFileName.Text);
+            while (!fileReader.EndOfStream)
+            {
+                string line = fileReader.ReadLine();
+                string[] s = line.Split(' ');
+                if (s[0] == "G01" || s[0] == "G00")
+                {
+                    endPos = startPos;
+                    for (int i = 1; i < s.Length; i++)
+                    {
+                        s[i] = s[i].Replace('.', decSplitChar);
+                        if (s[i].Length > 0)
+                        {
+                            if (s[i].First() == 'X')
+                            {
+                                endPos.x = double.Parse(s[i].Remove(0, 1));
+                            }
+                            else if (s[i].First() == 'Y')
+                            {
+                                endPos.y = double.Parse(s[i].Remove(0, 1));
+                            }
+                            else if(s[i].First() == 'Z')
+                            {
+                                endPos.z = double.Parse(s[i].Remove(0, 1));
+                            }
+                        }
+                    }
+                    lineStart.X = (int)(((startPos.x * pcbBounds.Width) - xMin) / (xMax - xMin)) + pcbBounds.X;
+                    lineStart.Y = pcbBounds.Height - (int)(((startPos.y * pcbBounds.Height) - yMin) / (yMax - yMin)) + pcbBounds.Y;
+                    lineEnd.X = (int)(((endPos.x * pcbBounds.Width) - xMin) / (xMax - xMin)) + pcbBounds.X;
+                    lineEnd.Y = pcbBounds.Height - (int)(((endPos.y * pcbBounds.Height) - yMin) / (yMax - yMin)) + pcbBounds.Y;
+                    gDrawing.DrawLine(p, lineStart, lineEnd);
+                    startPos = endPos;
+                }
+            }
+            fileReader.Close();
+        }
+
+        #endregion
+
         #region invoke
 
         public void setProgressbarValue(ProgressBar pb, int value)
@@ -595,6 +704,7 @@ namespace GcodeStreamer
             file = new StreamReader(openDialog.OpenFile());
             btnStart.Enabled = true;
             usedTools = new LinkedList<tool>();
+            drawGcodeFile();
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -783,9 +893,6 @@ namespace GcodeStreamer
             }
         }
 
-
-        #endregion
-
         private void tsmiSettings_Click(object sender, EventArgs e)
         {
             settings = new WFSettings();
@@ -824,6 +931,10 @@ namespace GcodeStreamer
             refreshPosThread = new Thread(refreshPos);
             refreshPosThread.Start();
         }
+
+        #endregion
+
+
     }
 }
 
