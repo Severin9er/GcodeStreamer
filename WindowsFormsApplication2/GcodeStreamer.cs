@@ -40,7 +40,7 @@ namespace GcodeStreamer
         string[] noReplyCmds =
         {
             "" + (char)0x18,
-            "?",
+            //"?",
             "!",
             "~",
             "" + (char)0x84,
@@ -54,6 +54,11 @@ namespace GcodeStreamer
             "" + (char)0x96,
             "" + (char)0x97,
             "" + (char)0x9A
+        };
+        string[] unrecognizedOKOrError =
+        {
+            "\nk",
+            "\no"
         };
         string feedHold = "!";
         string feedResume = "~";
@@ -83,7 +88,8 @@ namespace GcodeStreamer
         delegate void dPrintText(TextBox tb, string text);
         delegate void dSetText(TextBox tb, string text);
         delegate void dEnableJoystick(bool enable);
-        ManualResetEvent mre;
+        ManualResetEvent mreStreaming;
+        ManualResetEvent mrePortCommunication;
 
         #endregion
 
@@ -109,7 +115,8 @@ namespace GcodeStreamer
         {
             InitializeComponent();
             g = this.pJoystick.CreateGraphics();
-            mre = new ManualResetEvent(true);
+            mreStreaming = new ManualResetEvent(true);
+            mrePortCommunication = new ManualResetEvent(true);
             port = new SerialPort(portName, baudrate);
             toolChangePos = new position();
             usedTools = new LinkedList<tool>();
@@ -166,7 +173,7 @@ namespace GcodeStreamer
                 string nextLine = file.ReadLine();
                 
                 int status = (int)(100*file.BaseStream.Position / file.BaseStream.Length);
-                mre.WaitOne();
+                mreStreaming.WaitOne();
                 setProgressbarValue(pbStreamBar, status);
 
                 //Remove spaces at the beginning
@@ -194,7 +201,7 @@ namespace GcodeStreamer
                     {
                         nextLine = nextLine.Remove(nextLine.Length - 1, 1);
                     }
-                    mre.WaitOne();
+                    mreStreaming.WaitOne();
                     send(nextLine);
                     //Thread.Sleep(10);
                 }
@@ -270,6 +277,8 @@ namespace GcodeStreamer
                 return reply; //port is not open -> error message
             }
             port.NewLine = "\r";
+            mrePortCommunication.WaitOne();
+            mrePortCommunication.Reset();
             if(!needReply)
             {
                 port.Write(cmd);
@@ -277,12 +286,20 @@ namespace GcodeStreamer
             if(needReply)
             {
                 port.WriteLine(cmd);
-                reply = port.ReadLine();
-                if (reply != "ok")
+                
+                string line = port.ReadLine();
+                while(!line.Contains("ok") && !line.Contains("error") && !unrecognizedOKOrError.Contains(line))
                 {
-                    tbConsole.AppendText(reply+"\r\n");
+                    printText(tbConsole,line);
+                    reply += line;
+                    line = port.ReadLine();
+                }
+                if(line.Contains("error"))
+                {
+                    printText(tbConsole, line);
                 }
             }
+            mrePortCommunication.Set();
             return reply;
         }
 
@@ -298,6 +315,8 @@ namespace GcodeStreamer
                 return reply; //port is not open -> error message
             }
             port.NewLine = "\r";
+            mrePortCommunication.WaitOne();
+            mrePortCommunication.Reset();
             if (!needReply)
             {
                 port.Write(cmd);
@@ -305,42 +324,47 @@ namespace GcodeStreamer
             if (needReply)
             {
                 port.WriteLine(cmd);
-                reply = port.ReadLine(); //wait on reply
-                if (reply != "ok")
+                string line = port.ReadLine();
+                while(!line.Contains("ok") && !line.Contains("error") && !unrecognizedOKOrError.Contains(line))
                 {
-                    //error message
+                    reply += line;
+                    line = port.ReadLine();
                 }
             }
+            mrePortCommunication.Set();
             return reply;
         }
 
         private position getPosition()
         {
             position pos = new position();
-            pos.x = 0.0;
-            pos.y = 0.0;
-            pos.z = 0.0;
+            pos.x = double.NaN;
+            pos.y = double.NaN;
+            pos.z = double.NaN;
             string reply = sendHidden(requestState);
             if (reply != "")
             {
-                string[] s = reply.Split('|');
-                for (int i = 0; i < s.Count(); i++)
+                if (reply.Contains("WPos:") || reply.Contains("MPos:"))
                 {
-                    if (s[i].StartsWith("MPos:"))
+                    string[] s = reply.Split('|');
+                    for (int i = 0; i < s.Count(); i++)
                     {
-                        reply = s[i];
-                        i = s.Count();
+                        if (s[i].StartsWith("MPos:") || s[i].StartsWith("WPos:"))
+                        {
+                            reply = s[i];
+                            i = s.Count();
+                        }
                     }
+                    reply = reply.Remove(0, 5);
+                    s = reply.Split(',');
+                    for (int i = 0; i < s.Count(); i++)
+                    {
+                        s[i] = s[i].Replace('.', decSplitChar);
+                    }
+                    pos.x = double.Parse(s[0]);
+                    pos.y = double.Parse(s[1]);
+                    pos.z = double.Parse(s[2]);
                 }
-                reply = reply.Remove(0, 5);
-                s = reply.Split(',');
-                for (int i = 0; i < s.Count(); i++)
-                {
-                    s[i] = s[i].Replace('.', decSplitChar);
-                }
-                pos.x = double.Parse(s[0]);
-                pos.y = double.Parse(s[1]);
-                pos.z = double.Parse(s[2]);
             }
             return pos;
         }
@@ -351,9 +375,12 @@ namespace GcodeStreamer
             while(true)
             {
                 pos = getPosition();
-                setText(tbXPos, pos.x.ToString("0.000"));
-                setText(tbYPos, pos.y.ToString("0.000"));
-                setText(tbZPos, pos.z.ToString("0.000"));
+                if(!double.IsNaN(pos.x) && !double.IsNaN(pos.y) && !double.IsNaN(pos.z))
+                {
+                    setText(tbXPos, pos.x.ToString("0.000"));
+                    setText(tbYPos, pos.y.ToString("0.000"));
+                    setText(tbZPos, pos.z.ToString("0.000"));
+                }
                 Thread.Sleep(refreshPosInterval);
             }
         }
@@ -459,6 +486,7 @@ namespace GcodeStreamer
         {
             while(joystickloop)
             {
+                jogString = jogString.Replace(',', '.');
                 send(jogString);
             }
         }
@@ -669,6 +697,7 @@ namespace GcodeStreamer
                 EventArgs ev = new EventArgs();
                 btnStop_Click((object)btnStop, ev);
             }
+            port.Close();
         }
 
         private void btnSendCommand_Click(object sender, EventArgs e)
@@ -749,7 +778,7 @@ namespace GcodeStreamer
             if(btnPause.Text == "Pause")
             {
                 btnPause.Text = "Unpause";
-                mre.Reset();
+                mreStreaming.Reset();
                 send(feedHold);
                 btnSendCommand.Enabled = true;
                 enableJoystick(true);
@@ -757,7 +786,7 @@ namespace GcodeStreamer
             else
             {
                 btnPause.Text = "Pause";
-                mre.Set();
+                mreStreaming.Set();
                 send(feedResume);
                 btnSendCommand.Enabled = false;
                 enableJoystick(false);
@@ -816,6 +845,7 @@ namespace GcodeStreamer
             jogLoop.Abort();
             while (jogLoop.ThreadState != ThreadState.Aborted);
             jogLoop = null;
+            mrePortCommunication.Set();
             sendHidden(jogCancel);
         }
 
@@ -895,6 +925,7 @@ namespace GcodeStreamer
 
         private void tsmiSettings_Click(object sender, EventArgs e)
         {
+            port.Close();
             settings = new WFSettings();
             settings.comport = portName;
             settings.baudrate = baudrate;
@@ -919,9 +950,10 @@ namespace GcodeStreamer
             refreshPosInterval = s.refreshPosInterval;
             maxFeed = s.maxJoystickFeed;
             maxStep = s.maxJoystickStep;
+            port = new SerialPort(portName, baudrate);
             try
             {
-                port = new SerialPort(portName, baudrate);
+                port.Open();
             }
             catch(Exception ex)
             {
