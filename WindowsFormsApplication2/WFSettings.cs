@@ -21,6 +21,7 @@ namespace WindowsFormsApplication2
         public string decAccuracy = "";
         public int refreshPosInterval = 0;
         public char asdxcfvgbhn = ',';
+        public int maxSpindleRPM = 0;
 
         private string comportDefault = "COM8";
         private int baudrateDefault = 115200;
@@ -29,6 +30,7 @@ namespace WindowsFormsApplication2
         private int refreshPosIntervalDefault = 100;
         private string decAccuracyDefault = "0.000000";
         private char decSplitCharDefault = ',';
+        private int maxSpindleRPMDefault = 1000;
 
         public WFSettings()
         {
@@ -44,6 +46,7 @@ namespace WindowsFormsApplication2
             decAccuracy = decAccuracyDefault;
             refreshPosInterval = refreshPosIntervalDefault;
             asdxcfvgbhn = decSplitCharDefault;
+            maxSpindleRPM = maxSpindleRPMDefault;
 
             initSettings();
         }
@@ -80,6 +83,7 @@ namespace WindowsFormsApplication2
             tbMaxJoyFeed.Text = maxJoystickFeed.ToString();
             tbMaxJoyStep.Text = maxJoystickStep.ToString();
             tbRefreshInterval.Text = refreshPosInterval.ToString();
+            tbMaxSpindleRPM.Text = maxSpindleRPM.ToString();
         }
 
         private void cbBaudrate_SelectedIndexChanged(object sender, EventArgs e)
@@ -195,6 +199,7 @@ namespace WindowsFormsApplication2
             s.WriteLine(refreshPosInterval);
             s.WriteLine(decAccuracy);
             s.WriteLine(asdxcfvgbhn);
+            s.WriteLine(maxSpindleRPM);
             s.Close();
             this.Close();
         }
@@ -202,6 +207,18 @@ namespace WindowsFormsApplication2
         private void btnRestore_Click(object sender, EventArgs e)
         {
             restoreDefault();
+        }
+
+        private void tbMaxSpindleRPM_Leave(object sender, EventArgs e)
+        {
+            if (tbMaxSpindleRPM.Text != "")
+            {
+                maxSpindleRPM = int.Parse(tbMaxSpindleRPM.Text);
+            }
+            else
+            {
+                tbMaxSpindleRPM.Text = maxSpindleRPM.ToString();
+            }
         }
     }
 }

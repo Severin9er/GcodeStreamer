@@ -53,13 +53,33 @@ namespace GcodeStreamer
             "" + (char)0x95,
             "" + (char)0x96,
             "" + (char)0x97,
-            "" + (char)0x9A
+            "" + (char)0x9A,
+            "" + (char)0x9B,
+            "" + (char)0x9C,
+            "" + (char)0x9D
         };
         string[] unrecognizedOKOrError =
         {
             "\nk",
             "\no"
         };
+
+        string[] immediateCmds =
+        {
+            "!",
+            "~",
+            ""+(char)0x90,
+            ""+(char)0x91,
+            ""+(char)0x92,
+            ""+(char)0x93,
+            ""+(char)0x94,
+            ""+(char)0x9A,
+            ""+(char)0x9B,
+            ""+(char)0x9C,
+            ""+(char)0x9D,
+            ""+(char)0x18,
+            ""+(char)0x85
+    };
         string feedHold = "!";
         string feedResume = "~";
         string softReset = "" + (char)0x18;
@@ -78,6 +98,7 @@ namespace GcodeStreamer
         int refreshPosInterval = 100;
         string decAccuracy = "0.000000";
         char decSplitChar = ',';
+        int maxSpindleRPM = 1000;
 
         #endregion
 
@@ -98,6 +119,8 @@ namespace GcodeStreamer
         Thread streamingThread;
         Thread jogLoop;
         Thread refreshPosThread;
+        System.Windows.Forms.Timer refreshPosTimer;
+        //System.Timers.Timer refreshPosTimer;
         StreamReader file;
         SerialPort port;
         LinkedList<tool> usedTools;
@@ -105,9 +128,11 @@ namespace GcodeStreamer
         position toolChangePos;
         Graphics g;
         int lastFeed;
+        int lastSpindle;
         volatile bool joystickloop;
         volatile string jogString;
         WFSettings settings;
+        int spindleSpeed;
 
         #endregion
 
@@ -117,19 +142,14 @@ namespace GcodeStreamer
             g = this.pJoystick.CreateGraphics();
             mreStreaming = new ManualResetEvent(true);
             mrePortCommunication = new ManualResetEvent(true);
-            port = new SerialPort(portName, baudrate);
+            refreshPosTimer = new System.Windows.Forms.Timer();
+            refreshPosTimer.Enabled = true;
             toolChangePos = new position();
             usedTools = new LinkedList<tool>();
             currentToolNr = -1;
             lastFeed = 100;
+            lastSpindle = 100;
             settings = new WFSettings();
-            try {
-                port.Open();
-            }
-            catch(Exception e) {
-                //System.Console.WriteLine(e.StackTrace);
-                //Error-Message
-            }
             if(File.Exists("settings.txt"))
             {
                 StreamReader s = new StreamReader("settings.txt");
@@ -140,6 +160,7 @@ namespace GcodeStreamer
                 refreshPosInterval = int.Parse(s.ReadLine());
                 decAccuracy = s.ReadLine();
                 decSplitChar = char.Parse(s.ReadLine());
+                maxSpindleRPM = int.Parse(s.ReadLine());
                 s.Close();
             }
             else
@@ -153,73 +174,107 @@ namespace GcodeStreamer
                 s.WriteLine(settings.refreshPosInterval);
                 s.WriteLine(settings.decAccuracy);
                 s.WriteLine(settings.asdxcfvgbhn);
+                s.WriteLine(settings.maxSpindleRPM);
+                portName = settings.comport;
+                baudrate = settings.baudrate;
+                maxFeed = settings.maxJoystickFeed;
+                maxStep = settings.maxJoystickStep;
+                refreshPosInterval = settings.refreshPosInterval;
+                decAccuracy = settings.decAccuracy;
+                decSplitChar = settings.asdxcfvgbhn;
+                maxSpindleRPM = settings.maxSpindleRPM;
                 s.Close();
             }
-
-
+            updateMaxSpindleRPM();
+            spindleSpeed = maxSpindleRPM;
+            tbarSpindleRPM.Value = spindleSpeed;
+            tbSpindleRPM.Text = tbarSpindleRPM.Value.ToString();
+            port = new SerialPort(portName, baudrate);
+            try
+            {
+                port.Open();
+            }
+            catch
+            {
+                //System.Console.WriteLine(e.StackTrace);
+                //Error-Message
+            }
             refreshPosThread = new Thread(refreshPos);
             refreshPosThread.Start();
         }
 
         private void streaming()
         {
-            if (file == null)
-                return;
-            if (!file.BaseStream.CanRead)
-                return;
-            while(!file.EndOfStream)
+            try
             {
-                
-                string nextLine = file.ReadLine();
-                
-                int status = (int)(100*file.BaseStream.Position / file.BaseStream.Length);
-                mreStreaming.WaitOne();
-                setProgressbarValue(pbStreamBar, status);
+                if (file == null)
+                    return;
+                if (!file.BaseStream.CanRead)
+                    return;
+                while (!file.EndOfStream)
+                {
 
-                //Remove spaces at the beginning
-                while(nextLine.StartsWith(" "))
-                {
-                    nextLine = nextLine.Remove(0, 1);
-                }
-                if(nextLine.Contains(";"))
-                {
-                    nextLine = nextLine.Substring(0,nextLine.IndexOf(';'));
-                }
-                if(nextLine.Contains("("))
-                {
-                    bracket(nextLine);
-                    nextLine = "";
-                }
-                if(nextLine.Contains("T") && nextLine.Contains("M06"))  //Tool change
-                {
-                    toolChange(nextLine);
-                    nextLine = "";
-                }
-                if (nextLine != "")
-                {
-                    while(nextLine.LastIndexOf(' ') == nextLine.Length-1)
-                    {
-                        nextLine = nextLine.Remove(nextLine.Length - 1, 1);
-                    }
+                    string nextLine = file.ReadLine();
+
+                    int status = (int)(100 * file.BaseStream.Position / file.BaseStream.Length);
                     mreStreaming.WaitOne();
-                    send(nextLine);
-                    //Thread.Sleep(10);
-                }
-                
-            }
-            //finally
+                    setProgressbarValue(pbStreamBar, status);
 
-            file.BaseStream.Close();
-            file.Close();
-            file = new StreamReader(new FileStream(tbFileName.Text, FileMode.Open));
-            file.BaseStream.Position = 0;
-            file.BaseStream.Flush();
-            setProgressbarValue(pbStreamBar, 0);
-            enableButton(btnStart, true);
-            enableButton(btnStop, false);
-            enableButton(btnPause, false);
-            enableButton(btnSendCommand, true);
-            enableJoystick(true);
+                    //Remove spaces at the beginning
+                    while (nextLine.StartsWith(" "))
+                    {
+                        nextLine = nextLine.Remove(0, 1);
+                    }
+                    if (nextLine.Contains(";"))
+                    {
+                        nextLine = nextLine.Substring(0, nextLine.IndexOf(';'));
+                    }
+                    if (nextLine.Contains("("))
+                    {
+                        bracket(nextLine);
+                        nextLine = "";
+                    }
+                    if (nextLine.Contains("T") && nextLine.Contains("M06"))  //Tool change
+                    {
+                        toolChange(nextLine);
+                        nextLine = "";
+                    }
+                    if(nextLine.Contains("M03") && !nextLine.Contains("S"))
+                    {
+                        nextLine += " S" + spindleSpeed;
+                    }
+                    if (nextLine != "")
+                    {
+                        while (nextLine.LastIndexOf(' ') == nextLine.Length - 1)
+                        {
+                            nextLine = nextLine.Remove(nextLine.Length - 1, 1);
+                        }
+                        mreStreaming.WaitOne();
+                        send(nextLine);
+                        //Thread.Sleep(10);
+                    }
+
+                }
+            }
+            catch
+            {
+                mreStreaming.Set();
+                mrePortCommunication.Set();
+            }
+            finally
+            {
+                file.BaseStream.Close();
+                file.Close();
+                file = new StreamReader(new FileStream(tbFileName.Text, FileMode.Open));
+                file.BaseStream.Position = 0;
+                file.BaseStream.Flush();
+                setProgressbarValue(pbStreamBar, 0);
+                enableButton(btnStart, true);
+                enableButton(btnStop, false);
+                enableButton(btnPause, false);
+                enableButton(btnSendCommand, true);
+                enableJoystick(true);
+            }
         }
 
         private void toolChange(string line)
@@ -239,6 +294,7 @@ namespace GcodeStreamer
                 enableJoystick(true);
                 moveToPos(toolChangePos);
                 //send("M05"); //Stop Spindle //not needed, because it is included in the Gcode
+                send("G4 P0.01");   //Synchronization
                 MessageBox.Show("Change Tool to T" + nr.ToString() + ":\r\n\r\nSize: " + usedTools.ToArray()[nr - 1].size+"\r\n\r\nDO NOT TIGHTEN TOOL TOO FIRMLY YET", "Change Tool", MessageBoxButtons.OK);
                 currentToolNr = nr; //Set current tool to the new tool
                 moveToPos(backPos); //Go back to previous x and y position (z in safe height)
@@ -250,18 +306,25 @@ namespace GcodeStreamer
             {
                 enableButton(btnSendCommand, true);
                 enableJoystick(true);
+                send("G4 P0.01");   //Synchronization
                 MessageBox.Show("Tighten the Tool now firmly and make sure, it has contact to the surface (Z=0).", "Change Tool", MessageBoxButtons.OK);
                 enableButton(btnSendCommand, false);
                 enableJoystick(false);
             }
         }
 
+        private void updateMaxSpindleRPM()
+        {
+            tbarSpindleRPM.Maximum = maxSpindleRPM;
+            tbarSpindleRPM.TickFrequency = maxSpindleRPM / 20;
+        }
+
         #region communication with cnc
 
         private void moveToPos(position p)
         {
-            send("G01 Z" + p.z.ToString(decAccuracy));  //Move Z first
-            send("G01 X" + p.x.ToString(decAccuracy) + " Y" + p.y.ToString(decAccuracy));   //Move X,Y
+            send("G01 Z" + p.z.ToString(decAccuracy).Replace(',','.'));  //Move Z first
+            send("G01 X" + p.x.ToString(decAccuracy).Replace(',', '.') + " Y" + p.y.ToString(decAccuracy).Replace(',', '.'));   //Move X,Y
         }
 
         private string send(string cmd)
@@ -277,11 +340,25 @@ namespace GcodeStreamer
                 return reply; //port is not open -> error message
             }
             port.NewLine = "\r";
+            if (immediateCmds.Contains(cmd))
+            {
+                port.Write(cmd);
+                return reply;
+            }
             mrePortCommunication.WaitOne();
             mrePortCommunication.Reset();
             if(!needReply)
             {
-                port.Write(cmd);
+                if (cmd.Length == 1)
+                {
+                    Char c = cmd.First();
+                    Byte[] b = { (Byte)c };
+                    port.Write(b, 0, 1);
+                }
+                else
+                {
+                    port.Write(cmd);
+                }
             }
             if(needReply)
             {
@@ -315,21 +392,43 @@ namespace GcodeStreamer
                 return reply; //port is not open -> error message
             }
             port.NewLine = "\r";
+            if (immediateCmds.Contains(cmd))
+            {
+                port.Write(cmd);
+                return reply;
+            }
             mrePortCommunication.WaitOne();
             mrePortCommunication.Reset();
             if (!needReply)
             {
-                port.Write(cmd);
+                if(cmd.Length == 1 && cmd != "!" && cmd != "~")
+                {
+                    Char c = cmd.First();
+                    Byte[] b = { (Byte)c };
+                    port.Write(b, 0, 1);
+                }
+                else
+                {
+                    port.WriteLine(cmd);
+                }
             }
             if (needReply)
             {
-                port.WriteLine(cmd);
-                string line = port.ReadLine();
-                while(!line.Contains("ok") && !line.Contains("error") && !unrecognizedOKOrError.Contains(line))
+                try
                 {
-                    reply += line;
-                    line = port.ReadLine();
+                    port.WriteLine(cmd);
+                    string line = port.ReadLine();
+                    while (!line.Contains("ok") && !line.Contains("error") && !unrecognizedOKOrError.Contains(line))
+                    {
+                        reply += line;
+                        line = port.ReadLine();
+                    }
                 }
+                catch
+                {
+
+                }
+                
             }
             mrePortCommunication.Set();
             return reply;
@@ -371,17 +470,23 @@ namespace GcodeStreamer
 
         private void refreshPos()
         {
-            position pos;
-            while(true)
-            {
-                pos = getPosition();
-                if(!double.IsNaN(pos.x) && !double.IsNaN(pos.y) && !double.IsNaN(pos.z))
+            try {
+                position pos;
+                while (true)
                 {
-                    setText(tbXPos, pos.x.ToString("0.000"));
-                    setText(tbYPos, pos.y.ToString("0.000"));
-                    setText(tbZPos, pos.z.ToString("0.000"));
+                    pos = getPosition();
+                    if (!double.IsNaN(pos.x) && !double.IsNaN(pos.y) && !double.IsNaN(pos.z))
+                    {
+                        setText(tbXPos, pos.x.ToString("0.000"));
+                        setText(tbYPos, pos.y.ToString("0.000"));
+                        setText(tbZPos, pos.z.ToString("0.000"));
+                    }
+                    Thread.Sleep(refreshPosInterval);
                 }
-                Thread.Sleep(refreshPosInterval);
+            }
+            catch
+            {
+                mrePortCommunication.Set();
             }
         }
 
@@ -465,6 +570,37 @@ namespace GcodeStreamer
             
         }
 
+        private void spindleOverride(int val)
+        {
+            if (val > 10 && val <= 200 && val != lastSpindle)
+            {
+                if (val > lastSpindle)  //increasing
+                {
+                    for (int i = 0; i < (val - lastSpindle) / 10; i++)
+                    {
+                        sendHidden("" + (char)0x9A);    //increase by 10
+                    }
+                    for (int i = 0; i < (val - lastSpindle) % 10; i++)
+                    {
+                        sendHidden("" + (char)0x9C);    //Increase by 1
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < (lastSpindle - val) / 10; i++)
+                    {
+                        sendHidden("" + (char)0x9B);    //decrease by 10
+                    }
+                    for (int i = 0; i < (lastSpindle - val) % 10; i++)
+                    {
+                        sendHidden("" + (char)0x9D);    //decrease by 1
+                    }
+                }
+                lastSpindle = val;
+            }
+
+        }
+
         private void joystick(int x, int y)
         {
             int feed = (int)Math.Sqrt(x * x + y * y);
@@ -484,10 +620,16 @@ namespace GcodeStreamer
 
         private void joystickLoop()
         {
-            while(joystickloop)
+            try {
+                while (joystickloop)
+                {
+                    jogString = jogString.Replace(',', '.');
+                    send(jogString);
+                }
+            }
+            catch
             {
-                jogString = jogString.Replace(',', '.');
-                send(jogString);
+                mrePortCommunication.Set();
             }
         }
 
@@ -686,7 +828,7 @@ namespace GcodeStreamer
         private void onClose(object sender, FormClosingEventArgs e)
         {
             refreshPosThread.Abort();
-            if(jogLoop != null)
+            if (jogLoop != null)
             {
                 jogLoop.Abort();
                 jogLoop = null;
@@ -845,8 +987,11 @@ namespace GcodeStreamer
             jogLoop.Abort();
             while (jogLoop.ThreadState != ThreadState.Aborted);
             jogLoop = null;
-            mrePortCommunication.Set();
             sendHidden(jogCancel);
+            mrePortCommunication.WaitOne();
+            mrePortCommunication.Reset();
+            port.BaseStream.Flush();
+            mrePortCommunication.Set();
         }
 
         private void tbarJoystick_Scroll(object sender, EventArgs e)
@@ -923,8 +1068,101 @@ namespace GcodeStreamer
             }
         }
 
+        private void tbarSpindleOv_Scroll(object sender, EventArgs e)
+        {
+            tbSpindleOv.Text = tbarSpindleOv.Value.ToString();
+        }
+
+        private void tbarSpindleOv_MouseUp(object sender, MouseEventArgs e)
+        {
+            spindleOverride(tbarSpindleOv.Value);
+        }
+
+        private void tbSpindleOv_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            if (e.KeyChar == (char)13)   //enter
+            {
+                int value = int.Parse(tb.Text);
+                if (value < 11)
+                {
+                    value = 11;
+                }
+                else if (value > 200)
+                {
+                    value = 200;
+                }
+                tbarSpindleOv.Value = value;
+                tb.Text = value.ToString();
+                spindleOverride(value);
+                return;
+            }
+            if (e.KeyChar == ' ')
+            {
+                e.Handled = true;
+                return;
+            }
+            if (!char.IsControl(e.KeyChar))
+            {
+                string text = tbSpindleOv.Text;
+                text = text.Insert(tbSpindleOv.SelectionStart, "" + e.KeyChar);
+                int value;
+                if (!int.TryParse(text, out value))
+                {
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void tbarSpindleRPM_Scroll(object sender, EventArgs e)
+        {
+            tbSpindleRPM.Text = tbarSpindleRPM.Value.ToString();
+        }
+
+        private void tbarSpindleRPM_MouseUp(object sender, MouseEventArgs e)
+        {
+            spindleSpeed = tbarSpindleRPM.Value;
+        }
+
+        private void tbSpindleRPM_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            if (e.KeyChar == (char)13)   //enter
+            {
+                int value = int.Parse(tb.Text);
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                else if (value > tbarSpindleRPM.Maximum)
+                {
+                    value = tbarSpindleRPM.Maximum;
+                }
+                tbarSpindleRPM.Value = value;
+                tb.Text = value.ToString();
+                spindleSpeed = value;
+                return;
+            }
+            if (e.KeyChar == ' ')
+            {
+                e.Handled = true;
+                return;
+            }
+            if (!char.IsControl(e.KeyChar))
+            {
+                string text = tbSpindleRPM.Text;
+                text = text.Insert(tbSpindleOv.SelectionStart, "" + e.KeyChar);
+                int value;
+                if (!int.TryParse(text, out value))
+                {
+                    e.Handled = true;
+                }
+            }
+        }
+
         private void tsmiSettings_Click(object sender, EventArgs e)
         {
+            refreshPosThread.Abort();
             port.Close();
             settings = new WFSettings();
             settings.comport = portName;
@@ -934,8 +1172,8 @@ namespace GcodeStreamer
             settings.maxJoystickFeed = maxFeed;
             settings.decAccuracy = decAccuracy;
             settings.refreshPosInterval = refreshPosInterval;
+            settings.maxSpindleRPM = maxSpindleRPM;
             settings.initSettings();
-            refreshPosThread.Abort();
             settings.Show();
             settings.FormClosed += new FormClosedEventHandler(Settings_Close);
         }
@@ -950,23 +1188,35 @@ namespace GcodeStreamer
             refreshPosInterval = s.refreshPosInterval;
             maxFeed = s.maxJoystickFeed;
             maxStep = s.maxJoystickStep;
+            maxSpindleRPM = s.maxSpindleRPM;
+            updateMaxSpindleRPM();
             port = new SerialPort(portName, baudrate);
             try
             {
                 port.Open();
             }
-            catch(Exception ex)
+            catch
             {
                 //Nope
             }
             s.FormClosed -= new FormClosedEventHandler(Settings_Close);
+            mreStreaming.Set();
+            mrePortCommunication.Set();
             refreshPosThread = new Thread(refreshPos);
             refreshPosThread.Start();
         }
 
+        private void btnSpindleOn_Click(object sender, EventArgs e)
+        {
+            send("M03 S" + spindleSpeed.ToString());
+        }
+
+        private void btnSpindleOff_Click(object sender, EventArgs e)
+        {
+            send("M05");
+        }
+
         #endregion
-
-
     }
 }
 

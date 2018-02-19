@@ -52,9 +52,22 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.tsmiSettings = new System.Windows.Forms.ToolStripMenuItem();
             this.pDrawing = new System.Windows.Forms.Panel();
+            this.lblSpindleOv = new System.Windows.Forms.Label();
+            this.lblSpindleOvP = new System.Windows.Forms.Label();
+            this.tbSpindleOv = new System.Windows.Forms.TextBox();
+            this.tbarSpindleOv = new System.Windows.Forms.TrackBar();
+            this.lblSpindleRPM = new System.Windows.Forms.Label();
+            this.tbSpindleRPM = new System.Windows.Forms.TextBox();
+            this.tbarSpindleRPM = new System.Windows.Forms.TrackBar();
+            this.lblSpindleRPMUnit = new System.Windows.Forms.Label();
+            this.btnSpindleOn = new System.Windows.Forms.Button();
+            this.btnSpindleOff = new System.Windows.Forms.Button();
+            this.lblSpindleOnOff = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.tbarFeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).BeginInit();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.tbarSpindleOv)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbarSpindleRPM)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOpenFile
@@ -155,7 +168,7 @@
             // 
             // tbarFeed
             // 
-            this.tbarFeed.Location = new System.Drawing.Point(574, 166);
+            this.tbarFeed.Location = new System.Drawing.Point(633, 225);
             this.tbarFeed.Maximum = 200;
             this.tbarFeed.Minimum = 11;
             this.tbarFeed.Name = "tbarFeed";
@@ -168,7 +181,7 @@
             // 
             // tbFeed
             // 
-            this.tbFeed.Location = new System.Drawing.Point(810, 166);
+            this.tbFeed.Location = new System.Drawing.Point(869, 225);
             this.tbFeed.Name = "tbFeed";
             this.tbFeed.Size = new System.Drawing.Size(61, 22);
             this.tbFeed.TabIndex = 19;
@@ -178,7 +191,7 @@
             // lblFeedP
             // 
             this.lblFeedP.AutoSize = true;
-            this.lblFeedP.Location = new System.Drawing.Point(877, 166);
+            this.lblFeedP.Location = new System.Drawing.Point(936, 225);
             this.lblFeedP.Name = "lblFeedP";
             this.lblFeedP.Size = new System.Drawing.Size(20, 17);
             this.lblFeedP.TabIndex = 22;
@@ -187,7 +200,7 @@
             // lblFeed
             // 
             this.lblFeed.AutoSize = true;
-            this.lblFeed.Location = new System.Drawing.Point(521, 171);
+            this.lblFeed.Location = new System.Drawing.Point(580, 230);
             this.lblFeed.Name = "lblFeed";
             this.lblFeed.Size = new System.Drawing.Size(44, 17);
             this.lblFeed.TabIndex = 25;
@@ -272,7 +285,7 @@
             this.tsmiSettings});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1006, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(1093, 28);
             this.menuStrip1.TabIndex = 33;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -291,11 +304,130 @@
             this.pDrawing.Size = new System.Drawing.Size(766, 403);
             this.pDrawing.TabIndex = 34;
             // 
+            // lblSpindleOv
+            // 
+            this.lblSpindleOv.AutoSize = true;
+            this.lblSpindleOv.Location = new System.Drawing.Point(553, 168);
+            this.lblSpindleOv.Name = "lblSpindleOv";
+            this.lblSpindleOv.Size = new System.Drawing.Size(81, 17);
+            this.lblSpindleOv.TabIndex = 38;
+            this.lblSpindleOv.Text = "Spindle Ov:";
+            // 
+            // lblSpindleOvP
+            // 
+            this.lblSpindleOvP.AutoSize = true;
+            this.lblSpindleOvP.Location = new System.Drawing.Point(936, 163);
+            this.lblSpindleOvP.Name = "lblSpindleOvP";
+            this.lblSpindleOvP.Size = new System.Drawing.Size(20, 17);
+            this.lblSpindleOvP.TabIndex = 37;
+            this.lblSpindleOvP.Text = "%";
+            // 
+            // tbSpindleOv
+            // 
+            this.tbSpindleOv.Location = new System.Drawing.Point(869, 163);
+            this.tbSpindleOv.Name = "tbSpindleOv";
+            this.tbSpindleOv.Size = new System.Drawing.Size(61, 22);
+            this.tbSpindleOv.TabIndex = 36;
+            this.tbSpindleOv.Text = "100";
+            this.tbSpindleOv.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbSpindleOv_KeyPress);
+            // 
+            // tbarSpindleOv
+            // 
+            this.tbarSpindleOv.Location = new System.Drawing.Point(633, 163);
+            this.tbarSpindleOv.Maximum = 200;
+            this.tbarSpindleOv.Minimum = 11;
+            this.tbarSpindleOv.Name = "tbarSpindleOv";
+            this.tbarSpindleOv.Size = new System.Drawing.Size(230, 56);
+            this.tbarSpindleOv.TabIndex = 35;
+            this.tbarSpindleOv.TickFrequency = 10;
+            this.tbarSpindleOv.Value = 100;
+            this.tbarSpindleOv.Scroll += new System.EventHandler(this.tbarSpindleOv_Scroll);
+            this.tbarSpindleOv.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tbarSpindleOv_MouseUp);
+            // 
+            // lblSpindleRPM
+            // 
+            this.lblSpindleRPM.AutoSize = true;
+            this.lblSpindleRPM.Location = new System.Drawing.Point(530, 106);
+            this.lblSpindleRPM.Name = "lblSpindleRPM";
+            this.lblSpindleRPM.Size = new System.Drawing.Size(104, 17);
+            this.lblSpindleRPM.TabIndex = 41;
+            this.lblSpindleRPM.Text = "Spindle Speed:";
+            // 
+            // tbSpindleRPM
+            // 
+            this.tbSpindleRPM.Location = new System.Drawing.Point(869, 101);
+            this.tbSpindleRPM.Name = "tbSpindleRPM";
+            this.tbSpindleRPM.Size = new System.Drawing.Size(61, 22);
+            this.tbSpindleRPM.TabIndex = 40;
+            this.tbSpindleRPM.Text = "100";
+            this.tbSpindleRPM.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbSpindleRPM_KeyPress);
+            // 
+            // tbarSpindleRPM
+            // 
+            this.tbarSpindleRPM.Location = new System.Drawing.Point(633, 101);
+            this.tbarSpindleRPM.Maximum = 200;
+            this.tbarSpindleRPM.Name = "tbarSpindleRPM";
+            this.tbarSpindleRPM.Size = new System.Drawing.Size(230, 56);
+            this.tbarSpindleRPM.TabIndex = 39;
+            this.tbarSpindleRPM.TickFrequency = 10;
+            this.tbarSpindleRPM.Value = 100;
+            this.tbarSpindleRPM.Scroll += new System.EventHandler(this.tbarSpindleRPM_Scroll);
+            this.tbarSpindleRPM.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tbarSpindleRPM_MouseUp);
+            // 
+            // lblSpindleRPMUnit
+            // 
+            this.lblSpindleRPMUnit.AutoSize = true;
+            this.lblSpindleRPMUnit.Location = new System.Drawing.Point(936, 104);
+            this.lblSpindleRPMUnit.Name = "lblSpindleRPMUnit";
+            this.lblSpindleRPMUnit.Size = new System.Drawing.Size(38, 17);
+            this.lblSpindleRPMUnit.TabIndex = 42;
+            this.lblSpindleRPMUnit.Text = "RPM";
+            // 
+            // btnSpindleOn
+            // 
+            this.btnSpindleOn.Location = new System.Drawing.Point(980, 96);
+            this.btnSpindleOn.Name = "btnSpindleOn";
+            this.btnSpindleOn.Size = new System.Drawing.Size(43, 33);
+            this.btnSpindleOn.TabIndex = 43;
+            this.btnSpindleOn.Text = "On";
+            this.btnSpindleOn.UseVisualStyleBackColor = true;
+            this.btnSpindleOn.Click += new System.EventHandler(this.btnSpindleOn_Click);
+            // 
+            // btnSpindleOff
+            // 
+            this.btnSpindleOff.Location = new System.Drawing.Point(1029, 96);
+            this.btnSpindleOff.Name = "btnSpindleOff";
+            this.btnSpindleOff.Size = new System.Drawing.Size(43, 33);
+            this.btnSpindleOff.TabIndex = 44;
+            this.btnSpindleOff.Text = "Off";
+            this.btnSpindleOff.UseVisualStyleBackColor = true;
+            this.btnSpindleOff.Click += new System.EventHandler(this.btnSpindleOff_Click);
+            // 
+            // lblSpindleOnOff
+            // 
+            this.lblSpindleOnOff.AutoSize = true;
+            this.lblSpindleOnOff.Location = new System.Drawing.Point(977, 70);
+            this.lblSpindleOnOff.Name = "lblSpindleOnOff";
+            this.lblSpindleOnOff.Size = new System.Drawing.Size(101, 17);
+            this.lblSpindleOnOff.TabIndex = 45;
+            this.lblSpindleOnOff.Text = "Spindle On/Off";
+            // 
             // GcodeStreamer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1006, 978);
+            this.ClientSize = new System.Drawing.Size(1093, 978);
+            this.Controls.Add(this.lblSpindleOnOff);
+            this.Controls.Add(this.btnSpindleOff);
+            this.Controls.Add(this.btnSpindleOn);
+            this.Controls.Add(this.lblSpindleRPMUnit);
+            this.Controls.Add(this.lblSpindleRPM);
+            this.Controls.Add(this.tbSpindleRPM);
+            this.Controls.Add(this.tbarSpindleRPM);
+            this.Controls.Add(this.lblSpindleOv);
+            this.Controls.Add(this.lblSpindleOvP);
+            this.Controls.Add(this.tbSpindleOv);
+            this.Controls.Add(this.tbarSpindleOv);
             this.Controls.Add(this.pDrawing);
             this.Controls.Add(this.lblZPos);
             this.Controls.Add(this.lblYPos);
@@ -327,6 +459,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.tbarSpindleOv)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbarSpindleRPM)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -357,6 +491,17 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsmiSettings;
         private System.Windows.Forms.Panel pDrawing;
+        private System.Windows.Forms.Label lblSpindleOv;
+        private System.Windows.Forms.Label lblSpindleOvP;
+        private System.Windows.Forms.TextBox tbSpindleOv;
+        private System.Windows.Forms.TrackBar tbarSpindleOv;
+        private System.Windows.Forms.Label lblSpindleRPM;
+        private System.Windows.Forms.TextBox tbSpindleRPM;
+        private System.Windows.Forms.TrackBar tbarSpindleRPM;
+        private System.Windows.Forms.Label lblSpindleRPMUnit;
+        private System.Windows.Forms.Button btnSpindleOn;
+        private System.Windows.Forms.Button btnSpindleOff;
+        private System.Windows.Forms.Label lblSpindleOnOff;
     }
 }
 

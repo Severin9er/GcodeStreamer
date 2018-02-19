@@ -47,8 +47,11 @@
             this.lblBaudrateUnit = new System.Windows.Forms.Label();
             this.lblFeedUnit = new System.Windows.Forms.Label();
             this.lblJoyStepUnit = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblRefreshPosIntUnit = new System.Windows.Forms.Label();
             this.btnRestore = new System.Windows.Forms.Button();
+            this.lblMaxSpindleRPM = new System.Windows.Forms.Label();
+            this.lblMaxSpindleUnit = new System.Windows.Forms.Label();
+            this.tbMaxSpindleRPM = new System.Windows.Forms.TextBox();
             this.tlpSettings.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,8 +61,8 @@
             this.tlpSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tlpSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 57.0122F));
             this.tlpSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 42.9878F));
-            this.tlpSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 88F));
-            this.tlpSettings.Controls.Add(this.btnSave, 2, 9);
+            this.tlpSettings.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 91F));
+            this.tlpSettings.Controls.Add(this.btnSave, 2, 10);
             this.tlpSettings.Controls.Add(this.lblRefreshInterval, 1, 7);
             this.tlpSettings.Controls.Add(this.lblDecAccuracy, 1, 6);
             this.tlpSettings.Controls.Add(this.lblMaxJoyStep, 1, 5);
@@ -77,13 +80,17 @@
             this.tlpSettings.Controls.Add(this.lblBaudrateUnit, 3, 2);
             this.tlpSettings.Controls.Add(this.lblFeedUnit, 3, 4);
             this.tlpSettings.Controls.Add(this.lblJoyStepUnit, 3, 5);
-            this.tlpSettings.Controls.Add(this.label1, 3, 7);
-            this.tlpSettings.Controls.Add(this.btnRestore, 1, 9);
+            this.tlpSettings.Controls.Add(this.lblRefreshPosIntUnit, 3, 7);
+            this.tlpSettings.Controls.Add(this.btnRestore, 1, 10);
+            this.tlpSettings.Controls.Add(this.lblMaxSpindleRPM, 1, 8);
+            this.tlpSettings.Controls.Add(this.lblMaxSpindleUnit, 3, 8);
+            this.tlpSettings.Controls.Add(this.tbMaxSpindleRPM, 2, 8);
             this.tlpSettings.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tlpSettings.Location = new System.Drawing.Point(0, 0);
             this.tlpSettings.Name = "tlpSettings";
-            this.tlpSettings.RowCount = 11;
+            this.tlpSettings.RowCount = 12;
             this.tlpSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tlpSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tlpSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tlpSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tlpSettings.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
@@ -100,9 +107,9 @@
             // btnSave
             // 
             this.btnSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnSave.Location = new System.Drawing.Point(210, 263);
+            this.btnSave.Location = new System.Drawing.Point(208, 293);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(134, 44);
+            this.btnSave.Size = new System.Drawing.Size(133, 44);
             this.btnSave.TabIndex = 19;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -113,7 +120,7 @@
             this.lblRefreshInterval.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblRefreshInterval.AutoSize = true;
-            this.lblRefreshInterval.Location = new System.Drawing.Point(42, 200);
+            this.lblRefreshInterval.Location = new System.Drawing.Point(40, 200);
             this.lblRefreshInterval.Name = "lblRefreshInterval";
             this.lblRefreshInterval.Size = new System.Drawing.Size(162, 30);
             this.lblRefreshInterval.TabIndex = 12;
@@ -125,7 +132,7 @@
             this.lblDecAccuracy.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblDecAccuracy.AutoSize = true;
-            this.lblDecAccuracy.Location = new System.Drawing.Point(84, 170);
+            this.lblDecAccuracy.Location = new System.Drawing.Point(82, 170);
             this.lblDecAccuracy.Name = "lblDecAccuracy";
             this.lblDecAccuracy.Size = new System.Drawing.Size(120, 30);
             this.lblDecAccuracy.TabIndex = 10;
@@ -137,7 +144,7 @@
             this.lblMaxJoyStep.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblMaxJoyStep.AutoSize = true;
-            this.lblMaxJoyStep.Location = new System.Drawing.Point(80, 140);
+            this.lblMaxJoyStep.Location = new System.Drawing.Point(78, 140);
             this.lblMaxJoyStep.Name = "lblMaxJoyStep";
             this.lblMaxJoyStep.Size = new System.Drawing.Size(124, 30);
             this.lblMaxJoyStep.TabIndex = 8;
@@ -151,9 +158,9 @@
             this.cbDecSplitter.Items.AddRange(new object[] {
             ", (Comma)",
             ". (Point)"});
-            this.cbDecSplitter.Location = new System.Drawing.Point(210, 83);
+            this.cbDecSplitter.Location = new System.Drawing.Point(208, 83);
             this.cbDecSplitter.Name = "cbDecSplitter";
-            this.cbDecSplitter.Size = new System.Drawing.Size(134, 24);
+            this.cbDecSplitter.Size = new System.Drawing.Size(133, 24);
             this.cbDecSplitter.TabIndex = 6;
             this.cbDecSplitter.SelectedIndexChanged += new System.EventHandler(this.cbDecSplitter_SelectedIndexChanged);
             // 
@@ -162,7 +169,7 @@
             this.lblMaxJoyFeed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblMaxJoyFeed.AutoSize = true;
-            this.lblMaxJoyFeed.Location = new System.Drawing.Point(77, 110);
+            this.lblMaxJoyFeed.Location = new System.Drawing.Point(75, 110);
             this.lblMaxJoyFeed.Name = "lblMaxJoyFeed";
             this.lblMaxJoyFeed.Size = new System.Drawing.Size(127, 30);
             this.lblMaxJoyFeed.TabIndex = 5;
@@ -174,7 +181,7 @@
             this.lblDecSplit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblDecSplit.AutoSize = true;
-            this.lblDecSplit.Location = new System.Drawing.Point(98, 80);
+            this.lblDecSplit.Location = new System.Drawing.Point(96, 80);
             this.lblDecSplit.Name = "lblDecSplit";
             this.lblDecSplit.Size = new System.Drawing.Size(106, 30);
             this.lblDecSplit.TabIndex = 4;
@@ -186,7 +193,7 @@
             this.lblBaudrate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblBaudrate.AutoSize = true;
-            this.lblBaudrate.Location = new System.Drawing.Point(138, 50);
+            this.lblBaudrate.Location = new System.Drawing.Point(136, 50);
             this.lblBaudrate.Name = "lblBaudrate";
             this.lblBaudrate.Size = new System.Drawing.Size(66, 30);
             this.lblBaudrate.TabIndex = 2;
@@ -198,7 +205,7 @@
             this.lblComport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lblComport.AutoSize = true;
-            this.lblComport.Location = new System.Drawing.Point(134, 20);
+            this.lblComport.Location = new System.Drawing.Point(132, 20);
             this.lblComport.Name = "lblComport";
             this.lblComport.Size = new System.Drawing.Size(70, 30);
             this.lblComport.TabIndex = 0;
@@ -214,9 +221,9 @@
             "COM2",
             "COM3",
             "COM4"});
-            this.cbComport.Location = new System.Drawing.Point(210, 23);
+            this.cbComport.Location = new System.Drawing.Point(208, 23);
             this.cbComport.Name = "cbComport";
-            this.cbComport.Size = new System.Drawing.Size(134, 24);
+            this.cbComport.Size = new System.Drawing.Size(133, 24);
             this.cbComport.TabIndex = 1;
             this.cbComport.SelectedIndexChanged += new System.EventHandler(this.cbComport_SelectedIndexChanged);
             // 
@@ -235,18 +242,18 @@
             "115200",
             "230400",
             "250000"});
-            this.cbBaudrate.Location = new System.Drawing.Point(210, 53);
+            this.cbBaudrate.Location = new System.Drawing.Point(208, 53);
             this.cbBaudrate.Name = "cbBaudrate";
-            this.cbBaudrate.Size = new System.Drawing.Size(134, 24);
+            this.cbBaudrate.Size = new System.Drawing.Size(133, 24);
             this.cbBaudrate.TabIndex = 3;
             this.cbBaudrate.SelectedIndexChanged += new System.EventHandler(this.cbBaudrate_SelectedIndexChanged);
             // 
             // tbMaxJoyFeed
             // 
             this.tbMaxJoyFeed.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbMaxJoyFeed.Location = new System.Drawing.Point(210, 113);
+            this.tbMaxJoyFeed.Location = new System.Drawing.Point(208, 113);
             this.tbMaxJoyFeed.Name = "tbMaxJoyFeed";
-            this.tbMaxJoyFeed.Size = new System.Drawing.Size(134, 22);
+            this.tbMaxJoyFeed.Size = new System.Drawing.Size(133, 22);
             this.tbMaxJoyFeed.TabIndex = 7;
             this.tbMaxJoyFeed.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbInt_KeyPress);
             this.tbMaxJoyFeed.Leave += new System.EventHandler(this.tbInt_Leave);
@@ -254,9 +261,9 @@
             // tbMaxJoyStep
             // 
             this.tbMaxJoyStep.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbMaxJoyStep.Location = new System.Drawing.Point(210, 143);
+            this.tbMaxJoyStep.Location = new System.Drawing.Point(208, 143);
             this.tbMaxJoyStep.Name = "tbMaxJoyStep";
-            this.tbMaxJoyStep.Size = new System.Drawing.Size(134, 22);
+            this.tbMaxJoyStep.Size = new System.Drawing.Size(133, 22);
             this.tbMaxJoyStep.TabIndex = 9;
             this.tbMaxJoyStep.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbMaxJoyStep_KeyPress);
             this.tbMaxJoyStep.Leave += new System.EventHandler(this.tbMaxJoyStep_Leave);
@@ -264,9 +271,9 @@
             // tbDecAccuracy
             // 
             this.tbDecAccuracy.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbDecAccuracy.Location = new System.Drawing.Point(210, 173);
+            this.tbDecAccuracy.Location = new System.Drawing.Point(208, 173);
             this.tbDecAccuracy.Name = "tbDecAccuracy";
-            this.tbDecAccuracy.Size = new System.Drawing.Size(134, 22);
+            this.tbDecAccuracy.Size = new System.Drawing.Size(133, 22);
             this.tbDecAccuracy.TabIndex = 11;
             this.tbDecAccuracy.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbDecAccuracy_KeyPress);
             this.tbDecAccuracy.Leave += new System.EventHandler(this.tbDecAccuracy_Leave);
@@ -274,9 +281,9 @@
             // tbRefreshInterval
             // 
             this.tbRefreshInterval.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbRefreshInterval.Location = new System.Drawing.Point(210, 203);
+            this.tbRefreshInterval.Location = new System.Drawing.Point(208, 203);
             this.tbRefreshInterval.Name = "tbRefreshInterval";
-            this.tbRefreshInterval.Size = new System.Drawing.Size(134, 22);
+            this.tbRefreshInterval.Size = new System.Drawing.Size(133, 22);
             this.tbRefreshInterval.TabIndex = 13;
             this.tbRefreshInterval.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbInt_KeyPress);
             this.tbRefreshInterval.Leave += new System.EventHandler(this.tbInt_Leave);
@@ -286,7 +293,7 @@
             this.lblBaudrateUnit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.lblBaudrateUnit.AutoSize = true;
-            this.lblBaudrateUnit.Location = new System.Drawing.Point(350, 50);
+            this.lblBaudrateUnit.Location = new System.Drawing.Point(347, 50);
             this.lblBaudrateUnit.Name = "lblBaudrateUnit";
             this.lblBaudrateUnit.Size = new System.Drawing.Size(41, 30);
             this.lblBaudrateUnit.TabIndex = 14;
@@ -298,7 +305,7 @@
             this.lblFeedUnit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.lblFeedUnit.AutoSize = true;
-            this.lblFeedUnit.Location = new System.Drawing.Point(350, 110);
+            this.lblFeedUnit.Location = new System.Drawing.Point(347, 110);
             this.lblFeedUnit.Name = "lblFeedUnit";
             this.lblFeedUnit.Size = new System.Drawing.Size(56, 30);
             this.lblFeedUnit.TabIndex = 15;
@@ -310,35 +317,69 @@
             this.lblJoyStepUnit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.lblJoyStepUnit.AutoSize = true;
-            this.lblJoyStepUnit.Location = new System.Drawing.Point(350, 140);
+            this.lblJoyStepUnit.Location = new System.Drawing.Point(347, 140);
             this.lblJoyStepUnit.Name = "lblJoyStepUnit";
             this.lblJoyStepUnit.Size = new System.Drawing.Size(30, 30);
             this.lblJoyStepUnit.TabIndex = 16;
             this.lblJoyStepUnit.Text = "mm";
             this.lblJoyStepUnit.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // label1
+            // lblRefreshPosIntUnit
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.lblRefreshPosIntUnit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(350, 200);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(26, 30);
-            this.label1.TabIndex = 17;
-            this.label1.Text = "ms";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblRefreshPosIntUnit.AutoSize = true;
+            this.lblRefreshPosIntUnit.Location = new System.Drawing.Point(347, 200);
+            this.lblRefreshPosIntUnit.Name = "lblRefreshPosIntUnit";
+            this.lblRefreshPosIntUnit.Size = new System.Drawing.Size(26, 30);
+            this.lblRefreshPosIntUnit.TabIndex = 17;
+            this.lblRefreshPosIntUnit.Text = "ms";
+            this.lblRefreshPosIntUnit.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // btnRestore
             // 
             this.btnRestore.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnRestore.Location = new System.Drawing.Point(23, 263);
+            this.btnRestore.Location = new System.Drawing.Point(23, 293);
             this.btnRestore.Name = "btnRestore";
-            this.btnRestore.Size = new System.Drawing.Size(181, 44);
+            this.btnRestore.Size = new System.Drawing.Size(179, 44);
             this.btnRestore.TabIndex = 18;
             this.btnRestore.Text = "Restore Default";
             this.btnRestore.UseVisualStyleBackColor = true;
             this.btnRestore.Click += new System.EventHandler(this.btnRestore_Click);
+            // 
+            // lblMaxSpindleRPM
+            // 
+            this.lblMaxSpindleRPM.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblMaxSpindleRPM.AutoSize = true;
+            this.lblMaxSpindleRPM.Location = new System.Drawing.Point(80, 230);
+            this.lblMaxSpindleRPM.Name = "lblMaxSpindleRPM";
+            this.lblMaxSpindleRPM.Size = new System.Drawing.Size(122, 30);
+            this.lblMaxSpindleRPM.TabIndex = 20;
+            this.lblMaxSpindleRPM.Text = "Max. Spindle RPM";
+            this.lblMaxSpindleRPM.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // lblMaxSpindleUnit
+            // 
+            this.lblMaxSpindleUnit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblMaxSpindleUnit.AutoSize = true;
+            this.lblMaxSpindleUnit.Location = new System.Drawing.Point(347, 230);
+            this.lblMaxSpindleUnit.Name = "lblMaxSpindleUnit";
+            this.lblMaxSpindleUnit.Size = new System.Drawing.Size(38, 30);
+            this.lblMaxSpindleUnit.TabIndex = 21;
+            this.lblMaxSpindleUnit.Text = "RPM";
+            this.lblMaxSpindleUnit.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // tbMaxSpindleRPM
+            // 
+            this.tbMaxSpindleRPM.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbMaxSpindleRPM.Location = new System.Drawing.Point(208, 233);
+            this.tbMaxSpindleRPM.Name = "tbMaxSpindleRPM";
+            this.tbMaxSpindleRPM.Size = new System.Drawing.Size(133, 22);
+            this.tbMaxSpindleRPM.TabIndex = 22;
+            this.tbMaxSpindleRPM.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbInt_KeyPress);
+            this.tbMaxSpindleRPM.Leave += new System.EventHandler(this.tbMaxSpindleRPM_Leave);
             // 
             // WFSettings
             // 
@@ -374,8 +415,11 @@
         private System.Windows.Forms.Label lblBaudrateUnit;
         private System.Windows.Forms.Label lblFeedUnit;
         private System.Windows.Forms.Label lblJoyStepUnit;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblRefreshPosIntUnit;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnRestore;
+        private System.Windows.Forms.Label lblMaxSpindleRPM;
+        private System.Windows.Forms.Label lblMaxSpindleUnit;
+        private System.Windows.Forms.TextBox tbMaxSpindleRPM;
     }
 }
