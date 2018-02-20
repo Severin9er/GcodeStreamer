@@ -99,6 +99,8 @@ namespace GcodeStreamer
         string decAccuracy = "0.000000";
         char decSplitChar = ',';
         int maxSpindleRPM = 1000;
+        double pcbDimX = 0.0;
+        double pcbDimY = 0.0;
 
         #endregion
 
@@ -127,12 +129,17 @@ namespace GcodeStreamer
         int currentToolNr;
         position toolChangePos;
         Graphics g;
+        Graphics gDrawing;
+        Rectangle pcbBounds;
         int lastFeed;
         int lastSpindle;
         volatile bool joystickloop;
         volatile string jogString;
         WFSettings settings;
         int spindleSpeed;
+        Point lineStart = new Point();
+        Point lineEnd = new Point();
+        position gStartPos, gEndPos;
 
         #endregion
 
@@ -140,6 +147,12 @@ namespace GcodeStreamer
         {
             InitializeComponent();
             g = this.pJoystick.CreateGraphics();
+            gDrawing = pDrawing.CreateGraphics();
+            pcbBounds = pDrawing.ClientRectangle;
+            pcbBounds.X += 20;
+            pcbBounds.Y += 20;
+            pcbBounds.Height -= 40;
+            pcbBounds.Width -= 40;
             mreStreaming = new ManualResetEvent(true);
             mrePortCommunication = new ManualResetEvent(true);
             refreshPosTimer = new System.Windows.Forms.Timer();
@@ -161,6 +174,8 @@ namespace GcodeStreamer
                 decAccuracy = s.ReadLine();
                 decSplitChar = char.Parse(s.ReadLine());
                 maxSpindleRPM = int.Parse(s.ReadLine());
+                pcbDimX = double.Parse(s.ReadLine());
+                pcbDimY = double.Parse(s.ReadLine());
                 s.Close();
             }
             else
@@ -175,6 +190,8 @@ namespace GcodeStreamer
                 s.WriteLine(settings.decAccuracy);
                 s.WriteLine(settings.asdxcfvgbhn);
                 s.WriteLine(settings.maxSpindleRPM);
+                s.WriteLine(settings.pcbDimX);
+                s.WriteLine(settings.pcbDimY);
                 portName = settings.comport;
                 baudrate = settings.baudrate;
                 maxFeed = settings.maxJoystickFeed;
@@ -183,6 +200,8 @@ namespace GcodeStreamer
                 decAccuracy = settings.decAccuracy;
                 decSplitChar = settings.asdxcfvgbhn;
                 maxSpindleRPM = settings.maxSpindleRPM;
+                pcbDimX = settings.pcbDimX;
+                pcbDimY = settings.pcbDimY;
                 s.Close();
             }
             updateMaxSpindleRPM();
@@ -211,6 +230,9 @@ namespace GcodeStreamer
                     return;
                 if (!file.BaseStream.CanRead)
                     return;
+                gStartPos.x = 0;
+                gStartPos.y = 0;
+                gStartPos.z = 0;
                 while (!file.EndOfStream)
                 {
 
@@ -231,11 +253,12 @@ namespace GcodeStreamer
                     }
                     if (nextLine.Contains("("))
                     {
-                        bracket(nextLine);
+                        bracket(nextLine); //bracket called before in drawGcode
                         nextLine = "";
                     }
                     if (nextLine.Contains("T") && nextLine.Contains("M06"))  //Tool change
                     {
+                        drawGcodeLine(nextLine, Color.Blue);
                         toolChange(nextLine);
                         nextLine = "";
                     }
@@ -250,6 +273,7 @@ namespace GcodeStreamer
                             nextLine = nextLine.Remove(nextLine.Length - 1, 1);
                         }
                         mreStreaming.WaitOne();
+                        drawGcodeLine(nextLine, Color.Blue);
                         send(nextLine);
                         //Thread.Sleep(10);
                     }
@@ -294,7 +318,7 @@ namespace GcodeStreamer
                 enableJoystick(true);
                 moveToPos(toolChangePos);
                 //send("M05"); //Stop Spindle //not needed, because it is included in the Gcode
-                send("G4 P0.01");   //Synchronization
+                while (!position.Equals(getPosition(), toolChangePos)); //Wait until Position is ToolchangePos
                 MessageBox.Show("Change Tool to T" + nr.ToString() + ":\r\n\r\nSize: " + usedTools.ToArray()[nr - 1].size+"\r\n\r\nDO NOT TIGHTEN TOOL TOO FIRMLY YET", "Change Tool", MessageBoxButtons.OK);
                 currentToolNr = nr; //Set current tool to the new tool
                 moveToPos(backPos); //Go back to previous x and y position (z in safe height)
@@ -306,7 +330,7 @@ namespace GcodeStreamer
             {
                 enableButton(btnSendCommand, true);
                 enableJoystick(true);
-                send("G4 P0.01");   //Synchronization
+                while (!position.Equals(getPosition(), toolChangePos)) ; //Wait until Position is ToolchangePos
                 MessageBox.Show("Tighten the Tool now firmly and make sure, it has contact to the surface (Z=0).", "Change Tool", MessageBoxButtons.OK);
                 enableButton(btnSendCommand, false);
                 enableJoystick(false);
@@ -494,6 +518,7 @@ namespace GcodeStreamer
         {
             if(line.Contains("tool change at")) //Parse Tool Change Position out of file
             {
+                usedTools.Clear();
                 while(!char.IsDigit(line.First<char>()))    //Remove part before first number
                 {
                     line = line.Remove(0, 1);
@@ -548,10 +573,12 @@ namespace GcodeStreamer
                     for (int i = 0; i < (val - lastFeed) / 10; i++)
                     {
                         sendHidden("" + (char)0x91);    //increase by 10
+                        Thread.Sleep(10);
                     }
                     for (int i = 0; i < (val - lastFeed) % 10; i++)
                     {
                         sendHidden("" + (char)0x93);    //Increase by 1
+                        Thread.Sleep(10);
                     }
                 }
                 else
@@ -559,10 +586,12 @@ namespace GcodeStreamer
                     for (int i = 0; i < (lastFeed - val) / 10; i++)
                     {
                         sendHidden("" + (char)0x92);    //decrease by 10
+                        Thread.Sleep(10);
                     }
                     for (int i = 0; i < (lastFeed - val) % 10; i++)
                     {
                         sendHidden("" + (char)0x94);    //decrease by 1
+                        Thread.Sleep(10);
                     }
                 }
                 lastFeed = val;
@@ -579,10 +608,12 @@ namespace GcodeStreamer
                     for (int i = 0; i < (val - lastSpindle) / 10; i++)
                     {
                         sendHidden("" + (char)0x9A);    //increase by 10
+                        Thread.Sleep(10);
                     }
                     for (int i = 0; i < (val - lastSpindle) % 10; i++)
                     {
                         sendHidden("" + (char)0x9C);    //Increase by 1
+                        Thread.Sleep(10);
                     }
                 }
                 else
@@ -590,10 +621,12 @@ namespace GcodeStreamer
                     for (int i = 0; i < (lastSpindle - val) / 10; i++)
                     {
                         sendHidden("" + (char)0x9B);    //decrease by 10
+                        Thread.Sleep(10);
                     }
                     for (int i = 0; i < (lastSpindle - val) % 10; i++)
                     {
                         sendHidden("" + (char)0x9D);    //decrease by 1
+                        Thread.Sleep(10);
                     }
                 }
                 lastSpindle = val;
@@ -606,7 +639,7 @@ namespace GcodeStreamer
             int feed = (int)Math.Sqrt(x * x + y * y);
             int max = pJoystick.Width / 2 - 10;
             double xStep = maxStep * x / max;
-            double yStep = maxStep * y / max;
+            double yStep = maxStep * -y / max;
             feed = feed * maxFeed;
             feed /= max;
             jogString = "$J=G91 X" + xStep.ToString(decAccuracy) + "Y" + yStep.ToString(decAccuracy) + "F" + feed;
@@ -637,7 +670,7 @@ namespace GcodeStreamer
 
         #region gcode drawing
 
-        private void getDimensions(out double xMin, out double yMin, out double xMax, out double yMax)
+        /*private void getDimensions(out double xMin, out double yMin, out double xMax, out double yMax)
         {
             StreamReader fileReader = new StreamReader(tbFileName.Text);
             xMin = double.PositiveInfinity;
@@ -682,64 +715,107 @@ namespace GcodeStreamer
                         }
                     }
                 }
+                if(line.Contains("("))
+                {
+                    bracket(line);
+                }
             }
             fileReader.Close();
-        }
+        }*/
 
         public void drawGcodeFile()
         {
-            position startPos, endPos;
-            Point lineStart = new Point();
-            Point lineEnd = new Point();
-            startPos.x = 0;
-            startPos.y = 0;
-            startPos.z = 0;
-            double xMin, yMin, xMax, yMax;
-            getDimensions(out xMin, out yMin, out xMax, out yMax);
-            Graphics gDrawing = pDrawing.CreateGraphics();
-            Pen p = new Pen(Color.Black);
-            Rectangle pcbBounds = pDrawing.ClientRectangle;
-            pcbBounds.X += 20;
-            pcbBounds.Y += 20;
-            pcbBounds.Height -= 40;
-            pcbBounds.Width -= 40;
-            gDrawing.DrawRectangle(p, pcbBounds);
+            gDrawing.Clear(pDrawing.BackColor);
+            gStartPos.x = 0;
+            gStartPos.y = 0;
+            gStartPos.z = 0;
+            gDrawing.DrawRectangle(new Pen(Color.Black), pcbBounds);
             StreamReader fileReader = new StreamReader(tbFileName.Text);
             while (!fileReader.EndOfStream)
             {
                 string line = fileReader.ReadLine();
-                string[] s = line.Split(' ');
-                if (s[0] == "G01" || s[0] == "G00")
+                if(line.Contains("("))
                 {
-                    endPos = startPos;
-                    for (int i = 1; i < s.Length; i++)
-                    {
-                        s[i] = s[i].Replace('.', decSplitChar);
-                        if (s[i].Length > 0)
-                        {
-                            if (s[i].First() == 'X')
-                            {
-                                endPos.x = double.Parse(s[i].Remove(0, 1));
-                            }
-                            else if (s[i].First() == 'Y')
-                            {
-                                endPos.y = double.Parse(s[i].Remove(0, 1));
-                            }
-                            else if(s[i].First() == 'Z')
-                            {
-                                endPos.z = double.Parse(s[i].Remove(0, 1));
-                            }
-                        }
-                    }
-                    lineStart.X = (int)(((startPos.x * pcbBounds.Width) - xMin) / (xMax - xMin)) + pcbBounds.X;
-                    lineStart.Y = pcbBounds.Height - (int)(((startPos.y * pcbBounds.Height) - yMin) / (yMax - yMin)) + pcbBounds.Y;
-                    lineEnd.X = (int)(((endPos.x * pcbBounds.Width) - xMin) / (xMax - xMin)) + pcbBounds.X;
-                    lineEnd.Y = pcbBounds.Height - (int)(((endPos.y * pcbBounds.Height) - yMin) / (yMax - yMin)) + pcbBounds.Y;
-                    gDrawing.DrawLine(p, lineStart, lineEnd);
-                    startPos = endPos;
+                    bracket(line);
+                }
+                else
+                {
+                    drawGcodeLine(line, Color.Black);
                 }
             }
             fileReader.Close();
+        }
+
+        private void drawGcodeLine(string line, Color c)
+        {
+            double xMin, yMin, xMax, yMax;
+            xMin = 0;
+            yMin = 0;
+            xMax = pcbDimX;
+            yMax = pcbDimY;
+            Pen p = new Pen(c);
+            string[] s = line.Split(' ');
+            if (s[0] == "G01" || s[0] == "G00")
+            {
+                gEndPos = gStartPos;
+                for (int i = 1; i < s.Length; i++)
+                {
+                    s[i] = s[i].Replace('.', decSplitChar);
+                    if (s[i].Length > 0)
+                    {
+                        if (s[i].First() == 'X')
+                        {
+                            gEndPos.x = double.Parse(s[i].Remove(0, 1));
+                        }
+                        else if (s[i].First() == 'Y')
+                        {
+                            gEndPos.y = double.Parse(s[i].Remove(0, 1));
+                        }
+                        else if (s[i].First() == 'Z')
+                        {
+                            gEndPos.z = double.Parse(s[i].Remove(0, 1));
+                        }
+                    }
+                }
+                if (gEndPos.Equals(toolChangePos))
+                {
+                    FontFamily ff = new FontFamily(System.Drawing.Text.GenericFontFamilies.Monospace);
+                    Font f = new Font(ff, 12);
+                    lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                    lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                    gDrawing.DrawString("T", f, p.Brush, lineStart.X, lineStart.Y);
+                }
+                else if (gEndPos.z == gStartPos.z)
+                {
+                    lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                    lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                    lineEnd.X = (int)map(gEndPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                    lineEnd.Y = (int)map(gEndPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                    gDrawing.DrawLine(p, lineStart, lineEnd);
+                    gStartPos = gEndPos;
+                }
+                else
+                {
+                    lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                    lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                    gDrawing.DrawEllipse(p, lineStart.X - 5, lineStart.Y - 5, 10, 10);
+                    gStartPos = gEndPos;
+                }
+
+            }
+            else if (s[0] == "M06")
+            {
+                FontFamily ff = new FontFamily(System.Drawing.Text.GenericFontFamilies.Monospace);
+                Font f = new Font(ff, 12);
+                lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                gDrawing.DrawString(s[1], f, p.Brush, lineStart.X, lineStart.Y);
+            }
+        }
+
+        public double map(double x, double in_min, double in_max, double out_min, double out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
 
         #endregion
@@ -940,7 +1016,6 @@ namespace GcodeStreamer
         {
             if (e.Button == MouseButtons.Left)
             {
-                g.Dispose();
                 g = pJoystick.CreateGraphics();
                 Pen p = new Pen(Color.Red, 5);
                 g.FillEllipse(p.Brush, pJoystick.ClientRectangle);
@@ -977,6 +1052,7 @@ namespace GcodeStreamer
         {
             if(sender == pJoystick)
             {
+                g.Clear(pJoystick.BackColor);
                 pJoystick_Paint(sender, (EventArgs)e);
             }
             else if(sender == tbarJoystick)
@@ -990,7 +1066,6 @@ namespace GcodeStreamer
             sendHidden(jogCancel);
             mrePortCommunication.WaitOne();
             mrePortCommunication.Reset();
-            port.BaseStream.Flush();
             mrePortCommunication.Set();
         }
 
@@ -1173,6 +1248,8 @@ namespace GcodeStreamer
             settings.decAccuracy = decAccuracy;
             settings.refreshPosInterval = refreshPosInterval;
             settings.maxSpindleRPM = maxSpindleRPM;
+            settings.pcbDimX = pcbDimX;
+            settings.pcbDimY = pcbDimY;
             settings.initSettings();
             settings.Show();
             settings.FormClosed += new FormClosedEventHandler(Settings_Close);
@@ -1189,6 +1266,8 @@ namespace GcodeStreamer
             maxFeed = s.maxJoystickFeed;
             maxStep = s.maxJoystickStep;
             maxSpindleRPM = s.maxSpindleRPM;
+            pcbDimX = s.pcbDimX;
+            pcbDimY = s.pcbDimY;
             updateMaxSpindleRPM();
             port = new SerialPort(portName, baudrate);
             try

@@ -22,6 +22,8 @@ namespace WindowsFormsApplication2
         public int refreshPosInterval = 0;
         public char asdxcfvgbhn = ',';
         public int maxSpindleRPM = 0;
+        public double pcbDimX = 0.0;
+        public double pcbDimY = 0.0;
 
         private string comportDefault = "COM8";
         private int baudrateDefault = 115200;
@@ -31,6 +33,8 @@ namespace WindowsFormsApplication2
         private string decAccuracyDefault = "0.000000";
         private char decSplitCharDefault = ',';
         private int maxSpindleRPMDefault = 1000;
+        private double pcbDimXDefault = 100.0;
+        private double pcbDimYDefault = 80.0;
 
         public WFSettings()
         {
@@ -47,6 +51,8 @@ namespace WindowsFormsApplication2
             refreshPosInterval = refreshPosIntervalDefault;
             asdxcfvgbhn = decSplitCharDefault;
             maxSpindleRPM = maxSpindleRPMDefault;
+            pcbDimX = pcbDimXDefault;
+            pcbDimY = pcbDimYDefault;
 
             initSettings();
         }
@@ -84,6 +90,8 @@ namespace WindowsFormsApplication2
             tbMaxJoyStep.Text = maxJoystickStep.ToString();
             tbRefreshInterval.Text = refreshPosInterval.ToString();
             tbMaxSpindleRPM.Text = maxSpindleRPM.ToString();
+            tbPCBDimX.Text = tbPCBDimX.ToString();
+            tbPCBDimY.Text = tbPCBDimY.ToString();
         }
 
         private void cbBaudrate_SelectedIndexChanged(object sender, EventArgs e)
@@ -159,14 +167,15 @@ namespace WindowsFormsApplication2
             decAccuracy = tbDecAccuracy.Text;
         }
 
-        private void tbMaxJoyStep_KeyPress(object sender, KeyPressEventArgs e)
+        private void tbDouble_KeyPress(object sender, KeyPressEventArgs e)
         {
+            TextBox tb = (TextBox)sender;
             if (!Char.IsDigit(e.KeyChar) && e.KeyChar != '.' && e.KeyChar != ',' && !Char.IsControl(e.KeyChar))
             {
                 e.Handled = true;
                 return;
             }
-            if ((e.KeyChar == '.' || e.KeyChar == ',') && (tbMaxJoyStep.SelectionStart == 0 || tbMaxJoyStep.Text.Contains(",") || tbMaxJoyStep.Text.Contains(".")))
+            if ((e.KeyChar == '.' || e.KeyChar == ',') && (tb.SelectionStart == 0 || tb.Text.Contains(",") || tb.Text.Contains(".")))
             {
                 e.Handled = true;
             }
@@ -174,7 +183,12 @@ namespace WindowsFormsApplication2
 
         private void tbMaxJoyStep_Leave(object sender, EventArgs e)
         {
-            if(!double.TryParse(tbMaxJoyStep.Text, out maxJoystickStep))
+            if(tbMaxJoyStep.Text == "")
+            {
+                tbMaxJoyStep.Text = maxJoystickStep.ToString();
+                return;
+            }
+            if (!double.TryParse(tbMaxJoyStep.Text, out maxJoystickStep))
             {
                 if(tbMaxJoyStep.Text.Contains(","))
                 {
@@ -189,6 +203,50 @@ namespace WindowsFormsApplication2
             tbMaxJoyStep.Text = maxJoystickStep.ToString();
         }
 
+        private void tbPCBDimX_Leave(object sender, EventArgs e)
+        {
+            if (tbPCBDimX.Text == "")
+            {
+                tbPCBDimX.Text = pcbDimX.ToString();
+                return;
+            }
+            if (!double.TryParse(tbPCBDimX.Text, out pcbDimX))
+            {
+                if (tbPCBDimX.Text.Contains(","))
+                {
+                    tbPCBDimX.Text.Replace(',', '.');
+                }
+                else
+                {
+                    tbPCBDimX.Text.Replace('.', ',');
+                }
+                pcbDimX = double.Parse(tbPCBDimX.Text);
+            }
+            tbPCBDimX.Text = pcbDimX.ToString();
+        }
+
+        private void tbPCBDimY_Leave(object sender, EventArgs e)
+        {
+            if (tbPCBDimY.Text == "")
+            {
+                tbPCBDimY.Text = pcbDimY.ToString();
+                return;
+            }
+            if (!double.TryParse(tbPCBDimY.Text, out pcbDimY))
+            {
+                if (tbPCBDimY.Text.Contains(","))
+                {
+                    tbPCBDimY.Text.Replace(',', '.');
+                }
+                else
+                {
+                    tbPCBDimY.Text.Replace('.', ',');
+                }
+                pcbDimY = double.Parse(tbPCBDimY.Text);
+            }
+            tbPCBDimY.Text = pcbDimY.ToString();
+        }
+
         private void btnSave_Click(object sender, EventArgs e)
         {
             StreamWriter s = new StreamWriter("settings.txt",false);
@@ -200,6 +258,8 @@ namespace WindowsFormsApplication2
             s.WriteLine(decAccuracy);
             s.WriteLine(asdxcfvgbhn);
             s.WriteLine(maxSpindleRPM);
+            s.WriteLine(pcbDimX);
+            s.WriteLine(pcbDimY);
             s.Close();
             this.Close();
         }
