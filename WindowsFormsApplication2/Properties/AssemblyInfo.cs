@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("GcodeStreamer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Infineon Technologies")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GcodeStreamer")]
-[assembly: AssemblyCopyright("Copyright © Infineon Technologies 2018")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
