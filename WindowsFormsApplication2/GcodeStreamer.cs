@@ -398,6 +398,10 @@ namespace GcodeStreamer
                 if(line.Contains("error"))
                 {
                     printText(tbConsole, line);
+                    if(line.Contains("error: 22"))
+                    {
+                        send(cmd + " F50");
+                    }
                 }
             }
             mrePortCommunication.Set();
