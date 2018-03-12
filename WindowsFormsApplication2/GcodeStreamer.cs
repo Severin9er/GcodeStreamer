@@ -281,8 +281,9 @@ namespace GcodeStreamer
 
                 }
             }
-            catch
+            catch(Exception e)
             {
+                MessageBox.Show(e.StackTrace);
                 mreStreaming.Set();
                 mrePortCommunication.Set();
             }
@@ -313,16 +314,16 @@ namespace GcodeStreamer
             int nr = int.Parse(s[0]);
             if(nr != currentToolNr) //If tool is not already mounted
             {
-                position backPos = getPosition();
-                backPos.z = toolChangePos.z;
+                //position backPos = getPosition();
+                //backPos.z = toolChangePos.z;
                 enableButton(btnSendCommand, true);
                 enableJoystick(true);
                 moveToPos(toolChangePos);
                 //send("M05"); //Stop Spindle //not needed, because it is included in the Gcode
-                while (!position.Equals(getPosition(), toolChangePos)); //Wait until Position is ToolchangePos
+                while (tbXPos.Text != toolChangePos.x.ToString("0.000") || tbYPos.Text != toolChangePos.y.ToString("0.000") || tbZPos.Text != toolChangePos.z.ToString("0.000")) ;
                 MessageBox.Show("Change Tool to T" + nr.ToString() + ":\r\n\r\nSize: " + usedTools.ToArray()[nr - 1].size+"\r\n\r\nDO NOT TIGHTEN TOOL TOO FIRMLY YET", "Change Tool", MessageBoxButtons.OK);
                 currentToolNr = nr; //Set current tool to the new tool
-                moveToPos(backPos); //Go back to previous x and y position (z in safe height)
+                //moveToPos(backPos); //Go back to previous x and y position (z in safe height)
                 //send("M03");  //Start Spindle again // not needed because already included in Gcode
                 enableButton(btnSendCommand, false);
                 enableJoystick(false);
@@ -331,7 +332,7 @@ namespace GcodeStreamer
             {
                 enableButton(btnSendCommand, true);
                 enableJoystick(true);
-                while (!position.Equals(getPosition(), toolChangePos)) ; //Wait until Position is ToolchangePos
+                while (tbZPos.Text != 0.ToString("0.000"));
                 MessageBox.Show("Tighten the Tool now firmly and make sure, it has contact to the surface (Z=0).", "Change Tool", MessageBoxButtons.OK);
                 enableButton(btnSendCommand, false);
                 enableJoystick(false);
@@ -348,8 +349,8 @@ namespace GcodeStreamer
 
         private void moveToPos(position p)
         {
-            send("G01 Z" + p.z.ToString(decAccuracy).Replace(',','.'));  //Move Z first
-            send("G01 X" + p.x.ToString(decAccuracy).Replace(',', '.') + " Y" + p.y.ToString(decAccuracy).Replace(',', '.'));   //Move X,Y
+            send("G00 Z" + p.z.ToString(decAccuracy).Replace(',','.'));  //Move Z first
+            send("G00 X" + p.x.ToString(decAccuracy).Replace(',', '.') + " Y" + p.y.ToString(decAccuracy).Replace(',', '.'));   //Move X,Y
         }
 
         private string send(string cmd)
@@ -401,7 +402,8 @@ namespace GcodeStreamer
                     printText(tbConsole, line);
                     if(line.Contains("error:22"))
                     {
-                        port.WriteLine(cmd + " F" + stdFeedError22.ToString());
+                        mrePortCommunication.Set();
+                        send(cmd + " F" + stdFeedError22.ToString());
                     }
                 }
             }
@@ -489,9 +491,19 @@ namespace GcodeStreamer
                     {
                         s[i] = s[i].Replace('.', decSplitChar);
                     }
-                    pos.x = double.Parse(s[0]);
-                    pos.y = double.Parse(s[1]);
-                    pos.z = double.Parse(s[2]);
+                    try
+                    {
+                        double.TryParse(s[0], out pos.x);
+                        double.TryParse(s[1], out pos.y);
+                        double.TryParse(s[2], out pos.z);
+                    }
+                    catch(Exception e)
+                    {
+                        MessageBox.Show(e.Message, e.StackTrace);
+                        pos.x = double.NaN;
+                        pos.y = double.NaN;
+                        pos.z = double.NaN;
+                    }
                 }
             }
             return pos;
