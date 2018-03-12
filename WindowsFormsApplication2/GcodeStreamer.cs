@@ -101,6 +101,7 @@ namespace GcodeStreamer
         int maxSpindleRPM = 1000;
         double pcbDimX = 0.0;
         double pcbDimY = 0.0;
+        int stdFeedError22 = 50;
 
         #endregion
 
@@ -398,9 +399,9 @@ namespace GcodeStreamer
                 if(line.Contains("error"))
                 {
                     printText(tbConsole, line);
-                    if(line.Contains("error: 22"))
+                    if(line.Contains("error:22"))
                     {
-                        send(cmd + " F50");
+                        port.WriteLine(cmd + " F" + stdFeedError22.ToString());
                     }
                 }
             }
