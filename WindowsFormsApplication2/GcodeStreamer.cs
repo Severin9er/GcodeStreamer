@@ -128,6 +128,7 @@ namespace GcodeStreamer
         StreamReader file;
         SerialPort port;
         LinkedList<tool> usedTools;
+        double zHighWhenIdle = 0.0;
         int currentToolNr;
         position toolChangePos;
         Graphics g;
@@ -257,8 +258,10 @@ namespace GcodeStreamer
                     }
 
                 }
+                while (tbZPos.Text != zHighWhenIdle.ToString("0.000")) ;
+                SendNotification("Milling is done", "The CNC has finished milling");
             }
-            catch(Exception e)
+            catch
             {
                 //MessageBox.Show(e.StackTrace);
                 mreStreaming.Set();
@@ -516,7 +519,7 @@ namespace GcodeStreamer
             }
         }
 
-        private void bracket(string line)
+        private void bracket(string line, ref StreamReader sr)
         {
             if(line.Contains("tool change at")) //Parse Tool Change Position out of file
             {
@@ -553,6 +556,14 @@ namespace GcodeStreamer
                 usedTools.AddLast(t);
                 //Ignore the rest of the line
                 return;
+            }
+            if(line.Contains("High") && line.Contains("Up") && line.Contains("Down") && line.Contains("Drill"))
+            {
+                line = sr.ReadLine();
+                line = line.Replace("(", "");
+                line = line.Replace(")", "");
+                string s = line.Split(' ')[0].Replace('.',WFSettings.decSplitChar);
+                zHighWhenIdle = double.Parse(s);
             }
         }
 
@@ -687,7 +698,7 @@ namespace GcodeStreamer
                 string line = fileReader.ReadLine();
                 if(line.Contains("("))
                 {
-                    bracket(line);
+                    bracket(line, ref fileReader);
                     fileWriter.WriteLine(line);
                 }
                 else
