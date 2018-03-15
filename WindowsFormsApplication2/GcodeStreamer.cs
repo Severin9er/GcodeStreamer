@@ -229,11 +229,11 @@ namespace GcodeStreamer
                     {
                         nextLine = nextLine.Substring(0, nextLine.IndexOf(';'));
                     }
-                    if (nextLine.Contains("("))
+                    /*if (nextLine.Contains("("))
                     {
-                        bracket(nextLine); //bracket called before in drawGcode
+                        bracket(nextLine); //bracket() was already called before in drawGcode
                         nextLine = "";
-                    }
+                    }*/
                     if (nextLine.Contains("T") && nextLine.Contains("M06"))  //Tool change
                     {
                         drawGcodeLine(nextLine, Color.Blue);
@@ -672,59 +672,6 @@ namespace GcodeStreamer
 
         #region gcode drawing
 
-        /*private void getDimensions(out double xMin, out double yMin, out double xMax, out double yMax)
-        {
-            StreamReader fileReader = new StreamReader(tbFileName.Text);
-            xMin = double.PositiveInfinity;
-            yMin = double.PositiveInfinity;
-            xMax = double.NegativeInfinity;
-            yMax = double.NegativeInfinity;
-            while (!fileReader.EndOfStream)
-            {
-                string line = fileReader.ReadLine();
-                string[] s = line.Split(' ');
-                if(s[0] == "G01" || s[0] == "G00")
-                {
-                    for(int i = 1; i < s.Length; i++)
-                    {
-                        s[i] = s[i].Replace('.', decSplitChar);
-                        if(s[i].Length > 0)
-                        {
-                            if (s[i].First() == 'X')
-                            {
-                                double x = double.Parse(s[i].Remove(0, 1));
-                                if (x < xMin)
-                                {
-                                    xMin = x;
-                                }
-                                if (x > xMax)
-                                {
-                                    xMax = x;
-                                }
-                            }
-                            else if (s[i].First() == 'Y')
-                            {
-                                double y = double.Parse(s[i].Remove(0, 1));
-                                if (y < yMin)
-                                {
-                                    yMin = y;
-                                }
-                                if (y > yMax)
-                                {
-                                    yMax = y;
-                                }
-                            }
-                        }
-                    }
-                }
-                if(line.Contains("("))
-                {
-                    bracket(line);
-                }
-            }
-            fileReader.Close();
-        }*/
-
         public void drawGcodeFile()
         {
             gDrawing.Clear(pDrawing.BackColor);
@@ -733,23 +680,60 @@ namespace GcodeStreamer
             gStartPos.z = 0;
             gDrawing.DrawRectangle(new Pen(Color.Black), pcbBounds);
             StreamReader fileReader = new StreamReader(tbFileName.Text);
+            StreamWriter fileWriter = new StreamWriter("tmpFile.txt");
+            bool markForNotification = false;
             while (!fileReader.EndOfStream)
             {
                 string line = fileReader.ReadLine();
                 if(line.Contains("("))
                 {
                     bracket(line);
+                    fileWriter.WriteLine(line);
                 }
                 else
                 {
-                    drawGcodeLine(line, Color.Black);
+                    if (drawGcodeLine(line, Color.Black))
+                    {
+                        fileWriter.WriteLine(line);
+                    }
+                    else
+                    {
+                        //Consume whole block of moves out of bounds
+                        if(line.StartsWith("G00"))
+                        {
+                            line = fileReader.ReadLine();
+                            while(!line.StartsWith("G00"))
+                            {
+                                line = fileReader.ReadLine();
+                            }
+                        }
+                        markForNotification = true;
+                    }
                 }
             }
             fileReader.Close();
+            fileWriter.Close();
+            if(markForNotification)
+            {
+                DialogResult dialogResult;
+                dialogResult = MessageBox.Show("Some GCode lines were detected, which are outside of the configured PCB-Dimensions.\n" +
+                    "Would you like to delete them from the file?\n\n" +
+                    "NOTE: If you don't delete the lines, the CNC might crash!", "Invalid moves detected", MessageBoxButtons.YesNo);
+                if(dialogResult == DialogResult.Yes)
+                {
+                    file.Close();
+                    File.Copy("tmpFile.txt", tbFileName.Text, true);
+                    file = new StreamReader(new FileStream(tbFileName.Text, FileMode.Open));
+                    file.BaseStream.Flush();
+                    file.BaseStream.Position = 0;
+                }
+            }
+            File.Delete("tmpFile.txt");
         }
 
-        private void drawGcodeLine(string line, Color c)
+        private bool drawGcodeLine(string line, Color c)
         {
+            bool success = true;
             double xMin, yMin, xMax, yMax;
             xMin = 0;
             yMin = 0;
@@ -789,12 +773,20 @@ namespace GcodeStreamer
                 }
                 else if (gEndPos.z == gStartPos.z)
                 {
-                    lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
-                    lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
-                    lineEnd.X = (int)map(gEndPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
-                    lineEnd.Y = (int)map(gEndPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
-                    gDrawing.DrawLine(p, lineStart, lineEnd);
-                    gStartPos = gEndPos;
+                    if (gEndPos.x > xMax || gEndPos.x < xMin || gEndPos.y > yMax || gEndPos.y < yMin)
+                    {
+                        tbConsole.AppendText(line + "\n");
+                        success = false;
+                    }
+                    else
+                    {
+                        lineStart.X = (int)map(gStartPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                        lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                        lineEnd.X = (int)map(gEndPos.x, xMin, xMax, pcbBounds.X, pcbBounds.Width + pcbBounds.X);
+                        lineEnd.Y = (int)map(gEndPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
+                        gDrawing.DrawLine(p, lineStart, lineEnd);
+                        gStartPos = gEndPos;
+                    }
                 }
                 else
                 {
@@ -813,6 +805,7 @@ namespace GcodeStreamer
                 lineStart.Y = (int)map(gStartPos.y, yMin, yMax, pcbBounds.Height + pcbBounds.Y, pcbBounds.Y);
                 gDrawing.DrawString(s[1], f, p.Brush, lineStart.X, lineStart.Y);
             }
+            return success;
         }
 
         public double map(double x, double in_min, double in_max, double out_min, double out_max)
@@ -952,6 +945,10 @@ namespace GcodeStreamer
             if (openDialog.FileName == "")
                 return;
             tbFileName.Text = openDialog.FileName;
+            if (file != null)
+            {
+                file.Close();
+            }
             file = new StreamReader(openDialog.OpenFile());
             btnStart.Enabled = true;
             usedTools = new LinkedList<tool>();
