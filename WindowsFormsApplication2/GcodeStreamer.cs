@@ -91,17 +91,6 @@ namespace GcodeStreamer
 
         #region properties
 
-
-        /*string portName = "COM8";
-        int baudrate = 115200;
-        int maxFeed = 300;
-        double maxStep = 0.1;
-        int refreshPosInterval = 100;
-        string decAccuracy = "0.000000";
-        char decSplitChar = ',';
-        int maxSpindleRPM = 1000;
-        double pcbDimX = 0.0;
-        double pcbDimY = 0.0;*/
         int stdFeedError22 = 50;
 
         #endregion
@@ -387,16 +376,136 @@ namespace GcodeStreamer
                 }
                 if(line.Contains("error"))
                 {
-                    printText(tbConsole, line);
-                    if(line.Contains("error:22"))
-                    {
-                        mrePortCommunication.Set();
-                        send(cmd + " F" + stdFeedError22.ToString());
-                    }
+                    //printText(tbConsole, line); // not the error-code is shown anymore, but the full description
+                    errorHandling(line, cmd);
                 }
             }
             mrePortCommunication.Set();
             return reply;
+        }
+
+        private void errorHandling(string line, string cmd)
+        {
+            line = line.Remove(0, 6);
+            int error = int.Parse(line);
+            printErrorDescription(error);
+            if (error == 22)
+            {
+                mrePortCommunication.Set();
+                send(cmd + " F" + stdFeedError22.ToString());
+            }
+        }
+
+        private void printErrorDescription(int error)
+        {
+            switch(error)
+            {
+                case 1:
+                    printText(tbConsole, "G-code words consist of a letter and a value. Letter was not found.");
+                    break;
+                case 2:
+                    printText(tbConsole, "Numeric value format is not valid or missing an expected value.");
+                    break;
+                case 3:
+                    printText(tbConsole, "Grbl '$' system command was not recognized or supported.");
+                    break;
+                case 4:
+                    printText(tbConsole, "Negative value received for an expected positive value.");
+                    break;
+                case 5:
+                    printText(tbConsole, "Homing cycle is not enabled via settings.");
+                    break;
+                case 6:
+                    printText(tbConsole, "Minimum step pulse time must be greater than 3usec");
+                    break;
+                case 7:
+                    printText(tbConsole, "EEPROM read failed. Reset and restored to default values.");
+                    break;
+                case 8:
+                    printText(tbConsole, "Grbl '$' command cannot be used unless Grbl is IDLE. Ensures smooth operation during a job.");
+                    break;
+                case 9:
+                    printText(tbConsole, "G-code locked out during alarm or jog state");
+                    break;
+                case 10:
+                    printText(tbConsole, "Soft limits cannot be enabled without homing also enabled.");
+                    break;
+                case 11:
+                    printText(tbConsole, "Max characters per line exceeded. Line was not processed and executed.");
+                    break;
+                case 12:
+                    printText(tbConsole, "Grbl '$' setting value exceeds the maximum step rate supported.");
+                    break;
+                case 13:
+                    printText(tbConsole, "Safety door detected as opened and door state initiated.");
+                    break;
+                case 14:
+                    printText(tbConsole, "Build info or startup line exceeded EEPROM line length limit.");
+                    break;
+                case 15:
+                    printText(tbConsole, "Jog target exceeds machine travel. Command ignored.");
+                    break;
+                case 16:
+                    printText(tbConsole, "Jog command with no '=' or contains prohibited g-code.");
+                    break;
+                case 17:
+                    printText(tbConsole, "Laser mode requires PWM output.");
+                    break;
+                case 20:
+                    printText(tbConsole, "Unsupported or invalid g-code command found in block.");
+                    break;
+                case 21:
+                    printText(tbConsole, "More than one g-code command from same modal group found in block.");
+                    break;
+                case 22:
+                    printText(tbConsole, "Feed rate has not yet been set or is undefined.");
+                    break;
+                case 23:
+                    printText(tbConsole, "G-code command in block requires an integer value.");
+                    break;
+                case 24:
+                    printText(tbConsole, "Two G-code commands that both require the use of the XYZ axis words were detected in the block.");
+                    break;
+                case 25:
+                    printText(tbConsole, "A G-code word was repeated in the block.");
+                    break;
+                case 26:
+                    printText(tbConsole, "A G-code command implicitly or explicitly requires XYZ axis words in the block, but none were detected.");
+                    break;
+                case 27:
+                    printText(tbConsole, "N line number value is not within the valid range of 1 - 9,999,999.");
+                    break;
+                case 28:
+                    printText(tbConsole, "A G-code command was sent, but is missing some required P or L value words in the line.");
+                    break;
+                case 29:
+                    printText(tbConsole, "Grbl supports six work coordinate systems G54-G59. G59.1, G59.2, and G59.3 are not supported.");
+                    break;
+                case 30:
+                    printText(tbConsole, "The G53 G-code command requires either a G0 seek or G1 feed motion mode to be active. A different motion was active.");
+                    break;
+                case 31:
+                    printText(tbConsole, "There are unused axis words in the block and G80 motion mode cancel is active.");
+                    break;
+                case 32:
+                    printText(tbConsole, "A G2 or G3 arc was commanded but there are no XYZ axis words in the selected plane to trace the arc.");
+                    break;
+                case 33:
+                    printText(tbConsole, "The motion command has an invalid target. G2, G3, and G38.2 generates this error, if the arc is impossible to generate or if the probe target is the current position.");
+                    break;
+                case 34:
+                    printText(tbConsole, "A G2 or G3 arc, traced with the radius definition, had a mathematical error when computing the arc geometry. Try either breaking up the arc into semi-circles or quadrants, or redefine them with the arc offset definition.");
+                    break;
+                case 35:
+                    printText(tbConsole, "A G2 or G3 arc, traced with the offset definition, is missing the IJK offset word in the selected plane to trace the arc.");
+                    break;
+                case 36:
+                    printText(tbConsole, "There are unused, leftover G-code words that aren't used by any command in the block.");
+                    break;
+                case 37:
+                    printText(tbConsole, "The G43.1 dynamic tool length offset command cannot apply an offset to an axis other than its configured axis. The Grbl default axis is the Z-axis.");
+                    break;
+            }
         }
 
         private string sendHidden(string cmd)
