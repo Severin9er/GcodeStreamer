@@ -13,6 +13,7 @@ using System.IO.Ports;
 using System.IO;
 using System.Threading;
 using WindowsFormsApplication2;
+using System.Net;
 
 namespace GcodeStreamer
 {
@@ -91,7 +92,7 @@ namespace GcodeStreamer
         #region properties
 
 
-        string portName = "COM8";
+        /*string portName = "COM8";
         int baudrate = 115200;
         int maxFeed = 300;
         double maxStep = 0.1;
@@ -100,7 +101,7 @@ namespace GcodeStreamer
         char decSplitChar = ',';
         int maxSpindleRPM = 1000;
         double pcbDimX = 0.0;
-        double pcbDimY = 0.0;
+        double pcbDimY = 0.0;*/
         int stdFeedError22 = 50;
 
         #endregion
@@ -166,50 +167,26 @@ namespace GcodeStreamer
             settings = new WFSettings();
             if(File.Exists("settings.txt"))
             {
-                StreamReader s = new StreamReader("settings.txt");
-                portName = s.ReadLine();
-                baudrate = int.Parse(s.ReadLine());
-                maxFeed = int.Parse(s.ReadLine());
-                maxStep = double.Parse(s.ReadLine());
-                refreshPosInterval = int.Parse(s.ReadLine());
-                decAccuracy = s.ReadLine();
-                decSplitChar = char.Parse(s.ReadLine());
-                maxSpindleRPM = int.Parse(s.ReadLine());
-                pcbDimX = double.Parse(s.ReadLine());
-                pcbDimY = double.Parse(s.ReadLine());
-                s.Close();
+                try
+                {
+                    settings.readFile();
+                }
+                catch
+                {
+                    settings.restoreDefault();
+                    settings.saveFile();
+                }
             }
             else
             {
-                StreamWriter s = new StreamWriter("settings.txt");
                 settings.restoreDefault();
-                s.WriteLine(settings.comport);
-                s.WriteLine(settings.baudrate);
-                s.WriteLine(settings.maxJoystickFeed);
-                s.WriteLine(settings.maxJoystickStep);
-                s.WriteLine(settings.refreshPosInterval);
-                s.WriteLine(settings.decAccuracy);
-                s.WriteLine(settings.asdxcfvgbhn);
-                s.WriteLine(settings.maxSpindleRPM);
-                s.WriteLine(settings.pcbDimX);
-                s.WriteLine(settings.pcbDimY);
-                portName = settings.comport;
-                baudrate = settings.baudrate;
-                maxFeed = settings.maxJoystickFeed;
-                maxStep = settings.maxJoystickStep;
-                refreshPosInterval = settings.refreshPosInterval;
-                decAccuracy = settings.decAccuracy;
-                decSplitChar = settings.asdxcfvgbhn;
-                maxSpindleRPM = settings.maxSpindleRPM;
-                pcbDimX = settings.pcbDimX;
-                pcbDimY = settings.pcbDimY;
-                s.Close();
+                settings.saveFile();
             }
             updateMaxSpindleRPM();
-            spindleSpeed = maxSpindleRPM;
+            spindleSpeed = WFSettings.maxSpindleRPM;
             tbarSpindleRPM.Value = spindleSpeed;
             tbSpindleRPM.Text = tbarSpindleRPM.Value.ToString();
-            port = new SerialPort(portName, baudrate);
+            port = new SerialPort(WFSettings.comport, WFSettings.baudrate);
             try
             {
                 port.Open();
@@ -283,7 +260,7 @@ namespace GcodeStreamer
             }
             catch(Exception e)
             {
-                MessageBox.Show(e.StackTrace);
+                //MessageBox.Show(e.StackTrace);
                 mreStreaming.Set();
                 mrePortCommunication.Set();
             }
@@ -319,8 +296,16 @@ namespace GcodeStreamer
                 enableButton(btnSendCommand, true);
                 enableJoystick(true);
                 moveToPos(toolChangePos);
+                if (WFSettings.firstNotification)
+                {
+                    SendNotification("Toolchange Soon", "T" + nr.ToString("00") + ": " + usedTools.ToArray()[nr - 1].size);
+                }
                 //send("M05"); //Stop Spindle //not needed, because it is included in the Gcode
                 while (tbXPos.Text != toolChangePos.x.ToString("0.000") || tbYPos.Text != toolChangePos.y.ToString("0.000") || tbZPos.Text != toolChangePos.z.ToString("0.000")) ;
+                if (WFSettings.lastNotification)
+                {
+                    SendNotification("Toolchange Now", "T" + nr.ToString("00") + ": " + usedTools.ToArray()[nr - 1].size);
+                }
                 MessageBox.Show("Change Tool to T" + nr.ToString() + ":\r\n\r\nSize: " + usedTools.ToArray()[nr - 1].size+"\r\n\r\nDO NOT TIGHTEN TOOL TOO FIRMLY YET", "Change Tool", MessageBoxButtons.OK);
                 currentToolNr = nr; //Set current tool to the new tool
                 //moveToPos(backPos); //Go back to previous x and y position (z in safe height)
@@ -341,16 +326,16 @@ namespace GcodeStreamer
 
         private void updateMaxSpindleRPM()
         {
-            tbarSpindleRPM.Maximum = maxSpindleRPM;
-            tbarSpindleRPM.TickFrequency = maxSpindleRPM / 20;
+            tbarSpindleRPM.Maximum = WFSettings.maxSpindleRPM;
+            tbarSpindleRPM.TickFrequency = WFSettings.maxSpindleRPM / 20;
         }
 
         #region communication with cnc
 
         private void moveToPos(position p)
         {
-            send("G00 Z" + p.z.ToString(decAccuracy).Replace(',','.'));  //Move Z first
-            send("G00 X" + p.x.ToString(decAccuracy).Replace(',', '.') + " Y" + p.y.ToString(decAccuracy).Replace(',', '.'));   //Move X,Y
+            send("G00 Z" + p.z.ToString(WFSettings.decAccuracy).Replace(',','.'));  //Move Z first
+            send("G00 X" + p.x.ToString(WFSettings.decAccuracy).Replace(',', '.') + " Y" + p.y.ToString(WFSettings.decAccuracy).Replace(',', '.'));   //Move X,Y
         }
 
         private string send(string cmd)
@@ -489,7 +474,7 @@ namespace GcodeStreamer
                     s = reply.Split(',');
                     for (int i = 0; i < s.Count(); i++)
                     {
-                        s[i] = s[i].Replace('.', decSplitChar);
+                        s[i] = s[i].Replace('.', WFSettings.decSplitChar);
                     }
                     try
                     {
@@ -522,7 +507,7 @@ namespace GcodeStreamer
                         setText(tbYPos, pos.y.ToString("0.000"));
                         setText(tbZPos, pos.z.ToString("0.000"));
                     }
-                    Thread.Sleep(refreshPosInterval);
+                    Thread.Sleep(WFSettings.refreshPosInterval);
                 }
             }
             catch
@@ -543,7 +528,7 @@ namespace GcodeStreamer
                 string[] s = line.Split(' ');
                 for (int i = 0; i < s.Count(); i++)
                 {
-                    s[i]=s[i].Replace('.', decSplitChar);
+                    s[i]=s[i].Replace('.', WFSettings.decSplitChar);
                 }
                 toolChangePos.x = double.Parse(s[0]);
                 toolChangePos.y = double.Parse(s[1]);
@@ -655,11 +640,11 @@ namespace GcodeStreamer
         {
             int feed = (int)Math.Sqrt(x * x + y * y);
             int max = pJoystick.Width / 2 - 10;
-            double xStep = maxStep * x / max;
-            double yStep = maxStep * -y / max;
-            feed = feed * maxFeed;
+            double xStep = WFSettings.maxJoystickStep * x / max;
+            double yStep = WFSettings.maxJoystickStep * -y / max;
+            feed = feed * WFSettings.maxJoystickFeed;
             feed /= max;
-            jogString = "$J=G91 X" + xStep.ToString(decAccuracy) + "Y" + yStep.ToString(decAccuracy) + "F" + feed;
+            jogString = "$J=G91 X" + xStep.ToString(WFSettings.decAccuracy) + "Y" + yStep.ToString(WFSettings.decAccuracy) + "F" + feed;
         }
 
         private void joystickLoopStart()
@@ -768,8 +753,8 @@ namespace GcodeStreamer
             double xMin, yMin, xMax, yMax;
             xMin = 0;
             yMin = 0;
-            xMax = pcbDimX;
-            yMax = pcbDimY;
+            xMax = WFSettings.pcbDimX;
+            yMax = WFSettings.pcbDimY;
             Pen p = new Pen(c);
             string[] s = line.Split(' ');
             if (s[0] == "G01" || s[0] == "G00")
@@ -777,7 +762,7 @@ namespace GcodeStreamer
                 gEndPos = gStartPos;
                 for (int i = 1; i < s.Length; i++)
                 {
-                    s[i] = s[i].Replace('.', decSplitChar);
+                    s[i] = s[i].Replace('.', WFSettings.decSplitChar);
                     if (s[i].Length > 0)
                     {
                         if (s[i].First() == 'X')
@@ -923,8 +908,10 @@ namespace GcodeStreamer
             refreshPosThread.Abort();
             if (jogLoop != null)
             {
+                port.Close();
                 jogLoop.Abort();
                 jogLoop = null;
+                port.Open();
                 sendHidden(jogCancel);
             }
             if(streamingThread != null && streamingThread.ThreadState == ThreadState.Running)
@@ -985,8 +972,19 @@ namespace GcodeStreamer
 
         private void btnStop_Click(object sender, EventArgs e)
         {
+            port.Close();
             streamingThread.Abort();
-            send(softReset);  //Send SoftReset to stop CNC and forget last command
+            try
+            {
+                port.Open();
+            }
+            catch
+            {
+
+            }
+            send(feedHold); //Stop Motion
+            send(softReset);  //Send SoftReset to stop CNC and forget last commands
+            send(feedResume);   //enable Motion again
             //Close file and reopen it
             file.BaseStream.Close();
             file.Close();
@@ -1088,14 +1086,15 @@ namespace GcodeStreamer
 
         private void tbarJoystick_Scroll(object sender, EventArgs e)
         {
-            int feed = tbarJoystick.Value * maxFeed / tbarJoystick.Maximum;
+            int feed = tbarJoystick.Value * WFSettings.maxJoystickFeed / tbarJoystick.Maximum;
+            double joystickStep = WFSettings.maxJoystickStep;
             if (feed < 0)
             {
-                jogString = "$J=G91 Z-" + maxStep.ToString(decAccuracy) + " F" + (feed*-1).ToString();
+                jogString = "$J=G91 Z-" + joystickStep.ToString(WFSettings.decAccuracy) + " F" + (feed*-1).ToString();
             }
             else
             {
-                jogString = "$J=G91 Z" + maxStep.ToString(decAccuracy) + " F" + feed.ToString();
+                jogString = "$J=G91 Z" + joystickStep.ToString(WFSettings.decAccuracy) + " F" + feed.ToString();
             }
             if (jogLoop == null)
             {
@@ -1257,16 +1256,6 @@ namespace GcodeStreamer
             refreshPosThread.Abort();
             port.Close();
             settings = new WFSettings();
-            settings.comport = portName;
-            settings.baudrate = baudrate;
-            settings.asdxcfvgbhn = decSplitChar;
-            settings.maxJoystickStep = maxStep;
-            settings.maxJoystickFeed = maxFeed;
-            settings.decAccuracy = decAccuracy;
-            settings.refreshPosInterval = refreshPosInterval;
-            settings.maxSpindleRPM = maxSpindleRPM;
-            settings.pcbDimX = pcbDimX;
-            settings.pcbDimY = pcbDimY;
             settings.initSettings();
             settings.Show();
             settings.FormClosed += new FormClosedEventHandler(Settings_Close);
@@ -1275,18 +1264,8 @@ namespace GcodeStreamer
         private void Settings_Close(object sender, FormClosedEventArgs e)
         {
             WFSettings s = (WFSettings)sender;
-            portName = s.comport;
-            baudrate = s.baudrate;
-            decSplitChar = s.asdxcfvgbhn;
-            decAccuracy = s.decAccuracy;
-            refreshPosInterval = s.refreshPosInterval;
-            maxFeed = s.maxJoystickFeed;
-            maxStep = s.maxJoystickStep;
-            maxSpindleRPM = s.maxSpindleRPM;
-            pcbDimX = s.pcbDimX;
-            pcbDimY = s.pcbDimY;
             updateMaxSpindleRPM();
-            port = new SerialPort(portName, baudrate);
+            port = new SerialPort(WFSettings.comport, WFSettings.baudrate);
             try
             {
                 port.Open();
@@ -1310,6 +1289,49 @@ namespace GcodeStreamer
         private void btnSpindleOff_Click(object sender, EventArgs e)
         {
             send("M05");
+        }
+
+        private void btnUnlockCNC_Click(object sender, EventArgs e)
+        {
+            sendHidden(softReset);
+            send("$X");
+        }
+
+        #endregion
+
+        #region Firebase Push Messages
+
+        public static String SendNotification(String Title, String Message)
+        {
+            var result = "-1";
+            var webAddr = "https://fcm.googleapis.com/fcm/send";
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(webAddr);
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Headers.Add(HttpRequestHeader.Authorization, "key=AAAAlOhZ22g:APA91bH3S3df2pqroy8zlzXrCtqjTHMUJMAVUsXVKWot9l3hgPuzZuylzFfHOQrT3cJPZH_fi2cxqz2vOEvTGXaQD3OuwL_ily7qCh250Tj9MYHU48HPNTLcig2Z3UTb7DzEBh0uB3dA");
+            httpWebRequest.Method = "POST";
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+                string strNJson = @"{
+                    ""to"": ""/topics/ServiceNow"",
+                    ""notification"": 
+                    {
+                        ""title"": ""TITLE"",
+                        ""text"": ""NOTIFICATIONTEXT"",
+                        ""sound"":""default""
+                    }
+                }";
+                strNJson = strNJson.Replace("TITLE", Title);
+                strNJson = strNJson.Replace("NOTIFICATIONTEXT", Message);
+                streamWriter.Write(strNJson);
+                streamWriter.Flush();
+            }
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                result = streamReader.ReadToEnd();
+            }
+            return result;
         }
 
         #endregion

@@ -14,27 +14,31 @@ namespace WindowsFormsApplication2
 {
     public partial class WFSettings : Form
     {
-        public string comport = "";
-        public int baudrate = 0;
-        public int maxJoystickFeed = 0;
-        public double maxJoystickStep = 0.0;
-        public string decAccuracy = "";
-        public int refreshPosInterval = 0;
-        public char asdxcfvgbhn = ',';
-        public int maxSpindleRPM = 0;
-        public double pcbDimX = 0.0;
-        public double pcbDimY = 0.0;
+        public static string comport = "";
+        public static int baudrate = 0;
+        public static int maxJoystickFeed = 0;
+        public static double maxJoystickStep = 0.0;
+        public static string decAccuracy = "";
+        public static int refreshPosInterval = 0;
+        public static char decSplitChar = ',';
+        public static int maxSpindleRPM = 0;
+        public static double pcbDimX = 0.0;
+        public static double pcbDimY = 0.0;
+        public static bool firstNotification = true;
+        public static bool lastNotification = true;
 
-        private string comportDefault = "COM8";
-        private int baudrateDefault = 115200;
-        private int maxJoystickFeedDefault = 300;
-        private double maxJoystickStepDefault = 0.1;
-        private int refreshPosIntervalDefault = 100;
-        private string decAccuracyDefault = "0.000000";
-        private char decSplitCharDefault = ',';
-        private int maxSpindleRPMDefault = 1000;
-        private double pcbDimXDefault = 100.0;
-        private double pcbDimYDefault = 80.0;
+        private static string comportDefault = "COM8";
+        private static int baudrateDefault = 115200;
+        private static int maxJoystickFeedDefault = 300;
+        private static double maxJoystickStepDefault = 0.1;
+        private static int refreshPosIntervalDefault = 100;
+        private static string decAccuracyDefault = "0.000000";
+        private static char decSplitCharDefault = ',';
+        private static int maxSpindleRPMDefault = 1000;
+        private static double pcbDimXDefault = 100.0;
+        private static double pcbDimYDefault = 80.0;
+        private static bool firstNotificationDefault = true;
+        private static bool lastNotificationDefault = true;
 
         public WFSettings()
         {
@@ -49,10 +53,12 @@ namespace WindowsFormsApplication2
             maxJoystickStep = maxJoystickStepDefault;
             decAccuracy = decAccuracyDefault;
             refreshPosInterval = refreshPosIntervalDefault;
-            asdxcfvgbhn = decSplitCharDefault;
+            decSplitChar = decSplitCharDefault;
             maxSpindleRPM = maxSpindleRPMDefault;
             pcbDimX = pcbDimXDefault;
             pcbDimY = pcbDimYDefault;
+            firstNotification = firstNotificationDefault;
+            lastNotification = lastNotificationDefault;
 
             initSettings();
         }
@@ -80,7 +86,7 @@ namespace WindowsFormsApplication2
             cbComport.Text = comport;
             cbBaudrate.Text = baudrate.ToString();
             refreshPortList();
-            switch(asdxcfvgbhn)
+            switch(decSplitChar)
             {
                 case ',': cbDecSplitter.SelectedIndex = 0; break;
                 case '.': cbDecSplitter.SelectedIndex = 1; break;
@@ -90,21 +96,65 @@ namespace WindowsFormsApplication2
             tbMaxJoyStep.Text = maxJoystickStep.ToString();
             tbRefreshInterval.Text = refreshPosInterval.ToString();
             tbMaxSpindleRPM.Text = maxSpindleRPM.ToString();
-            tbPCBDimX.Text = tbPCBDimX.ToString();
-            tbPCBDimY.Text = tbPCBDimY.ToString();
+            tbPCBDimX.Text = pcbDimX.ToString();
+            tbPCBDimY.Text = pcbDimY.ToString();
+            cbFirstNotification.Checked = firstNotification;
+            cbLastNotification.Checked = lastNotification;
         }
 
-        private void cbBaudrate_SelectedIndexChanged(object sender, EventArgs e)
+        public  void saveFile()
+        {
+            StreamWriter s = new StreamWriter("settings.txt", false);
+            s.WriteLine(comport);
+            s.WriteLine(baudrate);
+            s.WriteLine(maxJoystickFeed);
+            s.WriteLine(maxJoystickStep);
+            s.WriteLine(refreshPosInterval);
+            s.WriteLine(decAccuracy);
+            s.WriteLine(decSplitChar);
+            s.WriteLine(maxSpindleRPM);
+            s.WriteLine(pcbDimX);
+            s.WriteLine(pcbDimY);
+            s.WriteLine(firstNotification);
+            s.WriteLine(lastNotification);
+            s.Close();
+        }
+
+        public  void readFile()
+        {
+            StreamReader s = new StreamReader("settings.txt");
+            try
+            {
+                comport = s.ReadLine();
+                baudrate = int.Parse(s.ReadLine());
+                maxJoystickFeed = int.Parse(s.ReadLine());
+                maxJoystickStep = double.Parse(s.ReadLine());
+                refreshPosInterval = int.Parse(s.ReadLine());
+                decAccuracy = s.ReadLine();
+                decSplitChar = char.Parse(s.ReadLine());
+                maxSpindleRPM = int.Parse(s.ReadLine());
+                pcbDimX = double.Parse(s.ReadLine());
+                pcbDimY = double.Parse(s.ReadLine());
+                firstNotification = bool.Parse(s.ReadLine());
+                lastNotification = bool.Parse(s.ReadLine());
+            }
+            finally
+            {
+                s.Close();
+            }
+        }
+
+        private  void cbBaudrate_SelectedIndexChanged(object sender, EventArgs e)
         {
             baudrate = int.Parse(cbBaudrate.Text);
         }
 
-        private void cbDecSplitter_SelectedIndexChanged(object sender, EventArgs e)
+        private  void cbDecSplitter_SelectedIndexChanged(object sender, EventArgs e)
         {
-            asdxcfvgbhn = cbDecSplitter.Text.First();
+            decSplitChar = cbDecSplitter.Text.First();
         }
 
-        private void tbInt_KeyPress(object sender, KeyPressEventArgs e)
+        private  void tbInt_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!Char.IsDigit(e.KeyChar) && !Char.IsControl(e.KeyChar))
             {
@@ -112,7 +162,7 @@ namespace WindowsFormsApplication2
             }
         }
 
-        private void tbInt_Leave(object sender, EventArgs e)
+        private  void tbInt_Leave(object sender, EventArgs e)
         {
             TextBox tb = (TextBox)sender;
             if(tb.Text == "")
@@ -140,7 +190,7 @@ namespace WindowsFormsApplication2
             
         }
 
-        private void tbDecAccuracy_KeyPress(object sender, KeyPressEventArgs e)
+        private  void tbDecAccuracy_KeyPress(object sender, KeyPressEventArgs e)
         {
             if(e.KeyChar == ',')
             {
@@ -157,7 +207,7 @@ namespace WindowsFormsApplication2
             }
         }
 
-        private void tbDecAccuracy_Leave(object sender, EventArgs e)
+        private  void tbDecAccuracy_Leave(object sender, EventArgs e)
         {
             if(tbDecAccuracy.Text == "")
             {
@@ -167,7 +217,7 @@ namespace WindowsFormsApplication2
             decAccuracy = tbDecAccuracy.Text;
         }
 
-        private void tbDouble_KeyPress(object sender, KeyPressEventArgs e)
+        private  void tbDouble_KeyPress(object sender, KeyPressEventArgs e)
         {
             TextBox tb = (TextBox)sender;
             if (!Char.IsDigit(e.KeyChar) && e.KeyChar != '.' && e.KeyChar != ',' && !Char.IsControl(e.KeyChar))
@@ -181,7 +231,7 @@ namespace WindowsFormsApplication2
             }
         }
 
-        private void tbMaxJoyStep_Leave(object sender, EventArgs e)
+        private  void tbMaxJoyStep_Leave(object sender, EventArgs e)
         {
             if(tbMaxJoyStep.Text == "")
             {
@@ -203,7 +253,7 @@ namespace WindowsFormsApplication2
             tbMaxJoyStep.Text = maxJoystickStep.ToString();
         }
 
-        private void tbPCBDimX_Leave(object sender, EventArgs e)
+        private  void tbPCBDimX_Leave(object sender, EventArgs e)
         {
             if (tbPCBDimX.Text == "")
             {
@@ -225,7 +275,7 @@ namespace WindowsFormsApplication2
             tbPCBDimX.Text = pcbDimX.ToString();
         }
 
-        private void tbPCBDimY_Leave(object sender, EventArgs e)
+        private  void tbPCBDimY_Leave(object sender, EventArgs e)
         {
             if (tbPCBDimY.Text == "")
             {
@@ -247,29 +297,18 @@ namespace WindowsFormsApplication2
             tbPCBDimY.Text = pcbDimY.ToString();
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private  void btnSave_Click(object sender, EventArgs e)
         {
-            StreamWriter s = new StreamWriter("settings.txt",false);
-            s.WriteLine(comport);
-            s.WriteLine(baudrate);
-            s.WriteLine(maxJoystickFeed);
-            s.WriteLine(maxJoystickStep);
-            s.WriteLine(refreshPosInterval);
-            s.WriteLine(decAccuracy);
-            s.WriteLine(asdxcfvgbhn);
-            s.WriteLine(maxSpindleRPM);
-            s.WriteLine(pcbDimX);
-            s.WriteLine(pcbDimY);
-            s.Close();
+            saveFile();
             this.Close();
         }
 
-        private void btnRestore_Click(object sender, EventArgs e)
+        private  void btnRestore_Click(object sender, EventArgs e)
         {
             restoreDefault();
         }
 
-        private void tbMaxSpindleRPM_Leave(object sender, EventArgs e)
+        private  void tbMaxSpindleRPM_Leave(object sender, EventArgs e)
         {
             if (tbMaxSpindleRPM.Text != "")
             {
@@ -279,6 +318,16 @@ namespace WindowsFormsApplication2
             {
                 tbMaxSpindleRPM.Text = maxSpindleRPM.ToString();
             }
+        }
+
+        private  void cbLastNotification_CheckedChanged(object sender, EventArgs e)
+        {
+            lastNotification = cbLastNotification.Checked;
+        }
+
+        private  void cbFirstNotification_CheckedChanged(object sender, EventArgs e)
+        {
+            firstNotification = cbFirstNotification.Checked;
         }
     }
 }

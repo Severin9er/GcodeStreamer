@@ -63,6 +63,7 @@
             this.btnSpindleOn = new System.Windows.Forms.Button();
             this.btnSpindleOff = new System.Windows.Forms.Button();
             this.lblSpindleOnOff = new System.Windows.Forms.Label();
+            this.btnUnlockCNC = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tbarFeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbarJoystick)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -412,11 +413,22 @@
             this.lblSpindleOnOff.TabIndex = 45;
             this.lblSpindleOnOff.Text = "Spindle On/Off";
             // 
+            // btnUnlockCNC
+            // 
+            this.btnUnlockCNC.Location = new System.Drawing.Point(929, 301);
+            this.btnUnlockCNC.Name = "btnUnlockCNC";
+            this.btnUnlockCNC.Size = new System.Drawing.Size(143, 31);
+            this.btnUnlockCNC.TabIndex = 46;
+            this.btnUnlockCNC.Text = "Unlock Maschine";
+            this.btnUnlockCNC.UseVisualStyleBackColor = true;
+            this.btnUnlockCNC.Click += new System.EventHandler(this.btnUnlockCNC_Click);
+            // 
             // GcodeStreamer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1093, 978);
+            this.Controls.Add(this.btnUnlockCNC);
             this.Controls.Add(this.lblSpindleOnOff);
             this.Controls.Add(this.btnSpindleOff);
             this.Controls.Add(this.btnSpindleOn);
@@ -502,6 +514,7 @@
         private System.Windows.Forms.Button btnSpindleOn;
         private System.Windows.Forms.Button btnSpindleOff;
         private System.Windows.Forms.Label lblSpindleOnOff;
+        private System.Windows.Forms.Button btnUnlockCNC;
     }
 }
 
