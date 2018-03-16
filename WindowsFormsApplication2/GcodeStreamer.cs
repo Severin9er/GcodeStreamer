@@ -248,7 +248,11 @@ namespace GcodeStreamer
 
                 }
                 while (tbZPos.Text != zHighWhenIdle.ToString("0.000")) ;
-                SendNotification("Milling is done", "The CNC has finished milling");
+                if (WFSettings.finishedNotification)
+                {
+                    SendNotification("Milling is done", "The CNC has finished milling");
+                }
+                MessageBox.Show("Milling is done","Finished");
             }
             catch
             {
@@ -388,7 +392,16 @@ namespace GcodeStreamer
         {
             line = line.Remove(0, 6);
             int error = int.Parse(line);
-            printErrorDescription(error);
+            if (printErrorDescription(error))
+            {
+                mrePortCommunication.Set();
+                btnPause_Click(btnPause, new EventArgs());
+                if(WFSettings.errorNotification)
+                {
+                    SendNotification("CNC Error", "Error occoured, CNC is now in Halt");
+                }
+            }
+            
             if (error == 22)
             {
                 mrePortCommunication.Set();
@@ -396,7 +409,7 @@ namespace GcodeStreamer
             }
         }
 
-        private void printErrorDescription(int error)
+        private bool printErrorDescription(int error)
         {
             switch(error)
             {
@@ -420,13 +433,13 @@ namespace GcodeStreamer
                     break;
                 case 7:
                     printText(tbConsole, "EEPROM read failed. Reset and restored to default values.");
-                    break;
+                    return true;
                 case 8:
                     printText(tbConsole, "Grbl '$' command cannot be used unless Grbl is IDLE. Ensures smooth operation during a job.");
                     break;
                 case 9:
                     printText(tbConsole, "G-code locked out during alarm or jog state");
-                    break;
+                    return true;
                 case 10:
                     printText(tbConsole, "Soft limits cannot be enabled without homing also enabled.");
                     break;
@@ -480,7 +493,7 @@ namespace GcodeStreamer
                     break;
                 case 29:
                     printText(tbConsole, "Grbl supports six work coordinate systems G54-G59. G59.1, G59.2, and G59.3 are not supported.");
-                    break;
+                    return true;
                 case 30:
                     printText(tbConsole, "The G53 G-code command requires either a G0 seek or G1 feed motion mode to be active. A different motion was active.");
                     break;
@@ -506,6 +519,7 @@ namespace GcodeStreamer
                     printText(tbConsole, "The G43.1 dynamic tool length offset command cannot apply an offset to an axis other than its configured axis. The Grbl default axis is the Z-axis.");
                     break;
             }
+            return false;
         }
 
         private string sendHidden(string cmd)

@@ -26,19 +26,23 @@ namespace WindowsFormsApplication2
         public static double pcbDimY = 0.0;
         public static bool firstNotification = true;
         public static bool lastNotification = true;
+        public static bool finishedNotification = true;
+        public static bool errorNotification = true;
 
-        private static string comportDefault = "COM8";
-        private static int baudrateDefault = 115200;
-        private static int maxJoystickFeedDefault = 300;
-        private static double maxJoystickStepDefault = 0.1;
-        private static int refreshPosIntervalDefault = 100;
-        private static string decAccuracyDefault = "0.000000";
-        private static char decSplitCharDefault = ',';
-        private static int maxSpindleRPMDefault = 1000;
-        private static double pcbDimXDefault = 100.0;
-        private static double pcbDimYDefault = 80.0;
-        private static bool firstNotificationDefault = true;
-        private static bool lastNotificationDefault = true;
+        private const string comportDefault = "COM8";
+        private const int baudrateDefault = 115200;
+        private const int maxJoystickFeedDefault = 300;
+        private const double maxJoystickStepDefault = 0.1;
+        private const int refreshPosIntervalDefault = 100;
+        private const string decAccuracyDefault = "0.000000";
+        private const char decSplitCharDefault = ',';
+        private const int maxSpindleRPMDefault = 1000;
+        private const double pcbDimXDefault = 100.0;
+        private const double pcbDimYDefault = 80.0;
+        private const bool firstNotificationDefault = true;
+        private const bool lastNotificationDefault = true;
+        private const bool finishedNotificationDefault = true;
+        private const bool errorNotificationDefault = true;
 
         public WFSettings()
         {
@@ -59,6 +63,8 @@ namespace WindowsFormsApplication2
             pcbDimY = pcbDimYDefault;
             firstNotification = firstNotificationDefault;
             lastNotification = lastNotificationDefault;
+            finishedNotification = finishedNotificationDefault;
+            errorNotification = errorNotificationDefault;
 
             initSettings();
         }
@@ -100,6 +106,8 @@ namespace WindowsFormsApplication2
             tbPCBDimY.Text = pcbDimY.ToString();
             cbFirstNotification.Checked = firstNotification;
             cbLastNotification.Checked = lastNotification;
+            cbNotificationFinished.Checked = finishedNotification;
+            cbNotificationError.Checked = errorNotification;
         }
 
         public  void saveFile()
@@ -117,6 +125,8 @@ namespace WindowsFormsApplication2
             s.WriteLine(pcbDimY);
             s.WriteLine(firstNotification);
             s.WriteLine(lastNotification);
+            s.WriteLine(finishedNotification);
+            s.WriteLine(errorNotification);
             s.Close();
         }
 
@@ -137,6 +147,8 @@ namespace WindowsFormsApplication2
                 pcbDimY = double.Parse(s.ReadLine());
                 firstNotification = bool.Parse(s.ReadLine());
                 lastNotification = bool.Parse(s.ReadLine());
+                finishedNotification = bool.Parse(s.ReadLine());
+                errorNotification = bool.Parse(s.ReadLine());
             }
             finally
             {
@@ -328,6 +340,16 @@ namespace WindowsFormsApplication2
         private  void cbFirstNotification_CheckedChanged(object sender, EventArgs e)
         {
             firstNotification = cbFirstNotification.Checked;
+        }
+
+        private void cbNotificationFinished_CheckedChanged(object sender, EventArgs e)
+        {
+            finishedNotification = cbNotificationFinished.Checked;
+        }
+
+        private void cbNotificationError_CheckedChanged(object sender, EventArgs e)
+        {
+            errorNotification = cbNotificationError.Checked;
         }
     }
 }
