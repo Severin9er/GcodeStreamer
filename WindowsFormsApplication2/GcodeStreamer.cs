@@ -372,7 +372,7 @@ namespace GcodeStreamer
                 port.WriteLine(cmd);
                 
                 string line = port.ReadLine();
-                while(!line.Contains("ok") && !line.Contains("error") && !unrecognizedOKOrError.Contains(line))
+                while(line.Contains('$'))
                 {
                     printText(tbConsole,line);
                     reply += line;
