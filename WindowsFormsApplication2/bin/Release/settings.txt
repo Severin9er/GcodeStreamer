@@ -8,3 +8,7 @@ COM8
 1000
 100
 80
+True
+True
+True
+True
