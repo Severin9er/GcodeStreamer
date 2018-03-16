@@ -644,7 +644,7 @@ namespace GcodeStreamer
             }
         }
 
-        private void bracket(string line, ref StreamReader sr)
+        private void bracket(string line, ref StreamReader sr, ref StreamWriter sw)
         {
             if(line.Contains("tool change at")) //Parse Tool Change Position out of file
             {
@@ -685,6 +685,7 @@ namespace GcodeStreamer
             if(line.Contains("High") && line.Contains("Up") && line.Contains("Down") && line.Contains("Drill"))
             {
                 line = sr.ReadLine();
+                sw.WriteLine(line);
                 line = line.Replace("(", "");
                 line = line.Replace(")", "");
                 string s = line.Split(' ')[0].Replace('.',WFSettings.decSplitChar);
@@ -823,8 +824,8 @@ namespace GcodeStreamer
                 string line = fileReader.ReadLine();
                 if(line.Contains("("))
                 {
-                    bracket(line, ref fileReader);
                     fileWriter.WriteLine(line);
+                    bracket(line, ref fileReader, ref fileWriter);
                 }
                 else
                 {
@@ -911,7 +912,7 @@ namespace GcodeStreamer
                 {
                     if (gEndPos.x > xMax || gEndPos.x < xMin || gEndPos.y > yMax || gEndPos.y < yMin)
                     {
-                        tbConsole.AppendText(line + "\n");
+                        //tbConsole.AppendText(line + "\n");
                         success = false;
                     }
                     else
