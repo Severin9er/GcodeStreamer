@@ -390,7 +390,10 @@ namespace GcodeStreamer
 
         private void errorHandling(string line, string cmd)
         {
-            line = line.Remove(0, 6);
+            while(!char.IsDigit(line.First()))
+            {
+                line = line.Remove(0, 1);
+            }
             int error = int.Parse(line);
             if (printErrorDescription(error))
             {
@@ -401,7 +404,6 @@ namespace GcodeStreamer
                     SendNotification("CNC Error", "Error occoured, CNC is now in Halt");
                 }
             }
-            
             if (error == 22)
             {
                 mrePortCommunication.Set();
